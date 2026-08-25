@@ -7,12 +7,19 @@
 *.zip
 
 # ---- Trained artefacts: regenerable, and binary ----
-# These are outputs, not source. Committing them bloats history permanently
-# (git stores every version of a binary in full) and they change on every
-# retrain. Anyone can rebuild them from the scripts; reproducibility comes
-# from the SHA-256 manifest in reports/, not from storing the bytes.
+# Outputs, not source. Git stores every version of a binary in full, so
+# committing these would bloat history permanently and they change on every
+# retrain. Reproducibility comes from the SHA-256 manifest in reports/.
 /models/
 /indexes/
+
+# ---- Private working notes: kept local, not published ----
+# The detailed teaching docs and the running engineering log are working
+# material rather than the public face of the project. The public README
+# carries the architecture, stack and results.
+/docs/
+development_log.md
+README_PRIVATE.md
 
 # ---- Secrets ----
 kaggle.json

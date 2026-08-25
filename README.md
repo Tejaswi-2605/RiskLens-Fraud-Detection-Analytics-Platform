@@ -1,476 +1,285 @@
-# RiskLens — Intelligent Financial Risk & Fraud Detection Platform
+# RiskLens
 
-An end-to-end fraud detection system built on the **IEEE-CIS Fraud Detection**
-dataset (public Kaggle benchmark, Vesta Corporation, 2019). *Not proprietary data.*
+**Fraud risk scoring and investigation platform for card payments.**
 
-**590,540 transactions · 434 features · 3.499% fraud · 182 days**
+Built on the IEEE-CIS Fraud Detection dataset — a public benchmark released by
+Vesta Corporation in 2019. *Not proprietary data.*
 
----
-
-## The problem
-
-Given a card transaction, estimate the probability it is fraudulent, and turn
-that probability into an auditable **approve / review / decline** decision under
-an explicit cost model.
-
-Two properties make this hard, and they drive every design choice:
-
-1. **Severe class imbalance** — 1 fraud per 27.6 legitimate transactions.
-   Accuracy is meaningless: predicting "never fraud" scores **96.5%**.
-2. **Time dependence** — fraud drifts. Our measured weekly fraud rate swings
-   **2.07% → 5.08%**. Any random train/test split leaks the future into the past.
+`590,540 transactions` · `504 engineered features` · `3.5% fraud` · `182 days`
 
 ---
 
-## Stage status
+## What it does
 
-| # | Stage | Status | Teaching doc |
-|---|---|---|---|
-| 0 | Project setup & reproducibility | ✅ | [stage01_ingestion.md](docs/stage01_ingestion.md) |
-| 1 | Data ingestion | ✅ | [stage01_ingestion.md](docs/stage01_ingestion.md) |
-| 2 | EDA + data quality + statistics | ✅ | [stage02_03_eda_and_split.md](docs/stage02_03_eda_and_split.md) |
-| 3 | Temporal split + feature engineering | ✅ | [stage02_03_eda_and_split.md](docs/stage02_03_eda_and_split.md) · [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
-| 3c | **Entity-linkage features** | ✅ | [stage03c_entity_features.md](docs/stage03c_entity_features.md) |
-| 4 | Supervised modelling | ✅ | [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
-| 5 | Evaluation + risk engine + calibration | ✅ | [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
-| 6 | Unsupervised + fraud typologies | ✅ | [stage06_07_unsupervised_and_shap.md](docs/stage06_07_unsupervised_and_shap.md) |
-| 7 | Explainability (SHAP) | ✅ | [stage06_07_unsupervised_and_shap.md](docs/stage06_07_unsupervised_and_shap.md) |
-| 8 | NLP + semantic search + RAG | ✅ | [stage08_09_genai.md](docs/stage08_09_genai.md) |
-| 9 | Agentic investigation copilot | ✅ | [stage08_09_genai.md](docs/stage08_09_genai.md) |
-| 10 | Serving — FastAPI + Streamlit | ✅ | [stage10_deployment.md](docs/stage10_deployment.md) |
+Given a card transaction, RiskLens estimates the probability that it is
+fraudulent and converts that probability into an auditable **approve / review /
+decline** decision under an explicit cost model — then explains the decision in
+language a fraud analyst can act on.
 
-Every stage in this repository has been **run on the real data**, and every
-number quoted below comes from an artefact in `reports/`.
+Two properties of the problem drive every design choice:
 
-## Headline results
+**Severe class imbalance.** One fraud per 27.6 legitimate transactions.
+Accuracy is meaningless here — a model that predicts "never fraud" scores
+96.5%.
 
-Measured on the **test** partition — opened once, at a threshold chosen on
-validation and applied unchanged.
+**Time dependence.** Fraud patterns drift; the measured weekly fraud rate
+swings between 2.07% and 5.08%. Any evaluation that shuffles the data leaks the
+future into the past and produces a score that will not survive production.
+
+---
+
+## Results
+
+Measured on a held-out **test period** — opened once, at a decision threshold
+chosen on validation and applied unchanged.
 
 | Metric | Value |
 |---|---|
-| **PR-AUC** | **0.5144** (14.4× random) |
+| **PR-AUC** | **0.5144** (14.4× a random model) |
 | ROC-AUC | 0.8969 |
-| Brier (calibrated) | 0.0238 |
-| ECE (calibrated) | 0.0067 |
-| Precision / Recall | 29.7% / **66.0%** |
+| Brier score (calibrated) | 0.0238 |
+| Expected Calibration Error | 0.0067 |
+| Precision / Recall | 29.7% / 66.0% |
 | Alert rate | 7.91% |
-| **Fraud loss avoided** | **45.6%** (£180,354) |
-| Generalisation gap | −0.043 |
+| **Fraud loss avoided** | **45.6%** (£180,354 over 26 days) |
+| Generalisation gap (test − validation) | −0.043 |
 
-A **logistic-regression baseline** scores PR-AUC 0.3137 (9.0× random). A random
-model scores the base rate, 0.0347 — which is why PR-AUC is always reported
-here as a *lift*.
+A logistic-regression baseline scores PR-AUC **0.3137**. A random model scores
+the base rate, **0.0347** — which is why PR-AUC is always reported here as a
+lift rather than as a bare number.
 
-**Calibration** (Platt, fitted on the earlier half of validation): Brier
-0.0448 → **0.0209**, ECE 0.1070 → **0.0067**, maximum predicted probability
-0.9999 → 0.8277, with **zero rank inversions**. The risk engine multiplies
-probability by money, so honest probabilities matter as much as good ranking.
+### Operating points
 
-### What entity-linkage features added
+The right threshold depends on how many alerts a fraud team can review:
 
-| | PR-AUC (test) | Loss avoided |
+| Alert budget | Precision | Recall |
 |---|---|---|
-| Without entity features | 0.4680 | 40.1% |
-| **With behavioural aggregates** | **0.5144** (+9.9%) | **45.6%** (+5.5 pts) |
-
-Recall rose 60.0% → 66.0% at essentially unchanged precision — a strictly
-better operating point, worth about **£21,600** more avoided loss over the
-26-day test period.
-
-## Four bugs found by running the thing
-
-Each was caught by a result being *impossible* or *suspicious*, not by a test:
-
-1. **"116.8% of fraud loss avoided."** The cost function treated caught fraud
-   as revenue rather than avoided loss, so the optimiser was rewarded for
-   flagging everything. You cannot avoid more loss than exists.
-
-2. **Fraud is 4× higher when identity data is PRESENT** — the opposite of the
-   stated hypothesis. A confounder: identity is only captured for
-   card-not-present transactions, which are inherently riskier.
-
-3. **A 26% "improvement" that was mostly memorisation.** Passing the raw
-   217,850-level entity IDs to the model let it learn *which customers had
-   been defrauded* rather than what fraud looks like — rewarded here because
-   the dataset propagates fraud labels across linked cards and addresses. A
-   single tree reached 0.42 on that alone. It also made the model too large to
-   serialise. Dropping the raw IDs and keeping only the behavioural aggregates
-   gives the honest 0.5144 above.
-
-4. **The copilot reported the CRITICAL action as the HIGH one** — a 3B model
-   shifted a row while reading a markdown table. Fixed architecturally: the
-   band→action lookup is now code, not prose comprehension.
-
-## Key findings so far
-
-| # | Finding | Consequence |
-|---|---|---|
-| 1 | Join preserved all **590,540** rows | Counts and rates are trustworthy |
-| 2 | **3.499%** fraud, 1 : 27.6 imbalance | Use PR-AUC, never accuracy |
-| 3 | Identity coverage only **24.4%** | LEFT join essential — INNER would delete 75.6% |
-| 4 | Fraud rate swings **2.07% → 5.08%** | Random split would be indefensible |
-| 5 | ⚠️ Fraud **4× higher when identity is PRESENT** | Channel effect, not evasion — **my hypothesis was wrong** |
-| 6 | ⚠️ `TransactionAmt` has **no** signal (δ = 0.001) | Consistent with card testing |
-| 7 | 339 V-columns → **14** missingness patterns | Heavy redundancy; use blocks not columns |
-| 8 | All PSI **< 0.06** | No drift; train and test are comparable |
-
-Finding 5 is the most instructive: I predicted missing identity meant evasion.
-The data said the opposite. The cause is a **confounder** — identity is only
-captured for card-not-present online transactions, which are inherently
-riskier. The LEFT join was more justified than I'd argued, but my causal story
-was wrong.
-
----
-
-## Setup
-
-```powershell
-python -m pytest                          # 51 tests, no dataset needed
-
-python scripts
-un_ingest.py              # Stage 1     -> interim Parquet
-python scripts
-un_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scripts
-un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
-python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scripts
-un_eval.py                # Stage 5     -> thresholds + test
-python scripts
-un_calibrate.py           # Stage 5b    -> calibration
-python scripts
-un_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scripts
-un_llm.py                 # Stages 8c-9 -> RAG + copilot
-python scriptsuild_notebooks.py         # generate + execute notebooks
-python scriptsuild_notebook_02.py
-
-uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
-streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
-```powershell
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-pip install -e .
-```powershell
-python -m pytest                          # 51 tests, no dataset needed
-
-python scripts
-un_ingest.py              # Stage 1     -> interim Parquet
-python scripts
-un_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scripts
-un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
-python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scripts
-un_eval.py                # Stage 5     -> thresholds + test
-python scripts
-un_calibrate.py           # Stage 5b    -> calibration
-python scripts
-un_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scripts
-un_llm.py                 # Stages 8c-9 -> RAG + copilot
-python scriptsuild_notebooks.py         # generate + execute notebooks
-python scriptsuild_notebook_02.py
-
-uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
-streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
-```
-
-### Get the data
-
-Needs a Kaggle account and one-time acceptance of the
-[competition rules](https://www.kaggle.com/c/ieee-fraud-detection/rules).
-
-```powershell
-python -m pytest                          # 51 tests, no dataset needed
-
-python scripts
-un_ingest.py              # Stage 1     -> interim Parquet
-python scripts
-un_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scripts
-un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
-python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scripts
-un_eval.py                # Stage 5     -> thresholds + test
-python scripts
-un_calibrate.py           # Stage 5b    -> calibration
-python scripts
-un_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scripts
-un_llm.py                 # Stages 8c-9 -> RAG + copilot
-python scriptsuild_notebooks.py         # generate + execute notebooks
-python scriptsuild_notebook_02.py
-
-uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
-streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
-```powershell
-python scripts\download_data.py       # needs ~/.kaggle/kaggle.json
-```powershell
-python -m pytest                          # 51 tests, no dataset needed
-
-python scripts
-un_ingest.py              # Stage 1     -> interim Parquet
-python scripts
-un_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scripts
-un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
-python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scripts
-un_eval.py                # Stage 5     -> thresholds + test
-python scripts
-un_calibrate.py           # Stage 5b    -> calibration
-python scripts
-un_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scripts
-un_llm.py                 # Stages 8c-9 -> RAG + copilot
-python scriptsuild_notebooks.py         # generate + execute notebooks
-python scriptsuild_notebook_02.py
-
-uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
-streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
-```
-
-Or download `train_transaction.csv` and `train_identity.csv` manually into
-`data\raw\`.
-
-> **Disk:** ~1.9 GB total. **RAM:** the pipeline peaks around 4.7 GB — close
-> other applications before running the full training.
-
----
-
-## Running the pipeline
-
-```powershell
-python -m pytest                          # 51 tests, no dataset needed
-
-python scripts
-un_ingest.py              # Stage 1     -> interim Parquet
-python scripts
-un_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scripts
-un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
-python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scripts
-un_eval.py                # Stage 5     -> thresholds + test
-python scripts
-un_calibrate.py           # Stage 5b    -> calibration
-python scripts
-un_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scripts
-un_llm.py                 # Stages 8c-9 -> RAG + copilot
-python scriptsuild_notebooks.py         # generate + execute notebooks
-python scriptsuild_notebook_02.py
-
-uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
-streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
-```powershell
-python -m pytest                          # 26 tests, no dataset needed
-python scripts\run_ingest.py              # Stage 1  → interim Parquet
-python scripts\run_eda.py                 # Stages 2-3 → tables + 7 figures
-python scripts\run_train.py               # Stages 3b-5 → models + metrics
-python scripts\build_notebooks.py         # generate + execute notebooks
-```powershell
-python -m pytest                          # 51 tests, no dataset needed
-
-python scripts
-un_ingest.py              # Stage 1     -> interim Parquet
-python scripts
-un_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scripts
-un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
-python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scripts
-un_eval.py                # Stage 5     -> thresholds + test
-python scripts
-un_calibrate.py           # Stage 5b    -> calibration
-python scripts
-un_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scripts
-un_llm.py                 # Stages 8c-9 -> RAG + copilot
-python scriptsuild_notebooks.py         # generate + execute notebooks
-python scriptsuild_notebook_02.py
-
-uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
-streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
-```
-
-Every script has `--help`. `run_train.py --sample 150000` iterates faster.
+| 0.5% of traffic | 94.0% | 13.6% |
+| 1% | 88.0% | 25.4% |
+| 2% | 71.1% | 41.0% |
+| 5% | 42.2% | 60.8% |
 
 ---
 
 ## Architecture
 
-```powershell
-python -m pytest                          # 51 tests, no dataset needed
-
-python scripts
-un_ingest.py              # Stage 1     -> interim Parquet
-python scripts
-un_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scripts
-un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
-python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scripts
-un_eval.py                # Stage 5     -> thresholds + test
-python scripts
-un_calibrate.py           # Stage 5b    -> calibration
-python scripts
-un_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scripts
-un_llm.py                 # Stages 8c-9 -> RAG + copilot
-python scriptsuild_notebooks.py         # generate + execute notebooks
-python scriptsuild_notebook_02.py
-
-uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
-streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
 ```
-data/raw/*.csv                     immutable, gitignored, SHA-256 hashed
-        ↓  Stage 1: load → validate → join → verify → sort
-data/interim/*.parquet             77 MB, 40× faster to load than CSV
-        ↓  Stage 3: TEMPORAL SPLIT  ← the leakage firewall
-   train (74.2%) │ val (12.4%) │ test (12.5%)   + 1-day embargo
-        ↓  Stage 3b-3c: deterministic + causal entity features (504 total)
-        ↓  Stages 4-7: models → evaluation → calibration → SHAP
-models/*.joblib
-        ↓  Stages 8-9: narratives → embeddings → RAG → agent
-        ↓  Stage 10: FastAPI (:8000) · Streamlit (:8502)
-```powershell
-python -m pytest                          # 51 tests, no dataset needed
-
-python scripts
-un_ingest.py              # Stage 1     -> interim Parquet
-python scripts
-un_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scripts
-un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
-python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scripts
-un_eval.py                # Stage 5     -> thresholds + test
-python scripts
-un_calibrate.py           # Stage 5b    -> calibration
-python scripts
-un_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scripts
-un_llm.py                 # Stages 8c-9 -> RAG + copilot
-python scriptsuild_notebooks.py         # generate + execute notebooks
-python scriptsuild_notebook_02.py
-
-uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
-streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
+                    data/raw/*.csv          immutable, hashed, never committed
+                          │
+        ┌─────────────────▼─────────────────┐
+        │  1. INGESTION                      │  load → validate → join →
+        │     data contract, 7 assertions    │  verify → sort → persist
+        └─────────────────┬─────────────────┘
+                          │  transactions_joined.parquet  (77 MB, typed)
+        ┌─────────────────▼─────────────────┐
+        │  2. TEMPORAL SPLIT                 │  ◀── the leakage firewall
+        │     74% / 12% / 12% + 1d embargo   │
+        └─────────────────┬─────────────────┘
+                          │
+        ┌─────────────────▼─────────────────┐
+        │  3. FEATURES  (434 → 504)          │
+        │     • deterministic, row-wise      │  log amount, cyclical time,
+        │     • causal entity aggregates     │  missingness flags, velocity,
+        │     • fitted frequency encoding    │  running spend per entity
+        └─────────────────┬─────────────────┘
+                          │
+        ┌─────────────────▼─────────────────┐
+        │  4. MODELS                         │  LogisticRegression baseline
+        │     baseline → XGBoost             │  XGBoost, class-weighted
+        └─────────────────┬─────────────────┘
+                          │
+        ┌─────────────────▼─────────────────┐
+        │  5. RISK ENGINE                    │  calibration → cost model →
+        │     probability → decision         │  threshold → approve/review/decline
+        └─────────────────┬─────────────────┘
+                          │
+        ┌─────────────────▼─────────────────┐
+        │  6. EXPLAINABILITY   SHAP          │  per-alert reason codes
+        │  7. UNSUPERVISED     IsolationForest, KMeans typologies
+        │  8. RETRIEVAL        embeddings → FAISS → semantic case search
+        │  9. COPILOT          RAG over policy + tool-using agent
+        └─────────────────┬─────────────────┘
+                          │
+        ┌─────────────────▼─────────────────┐
+        │  10. SERVING                       │
+        │      FastAPI :8000  ·  Streamlit :8502
+        └────────────────────────────────────┘
 ```
 
-**The one rule everything obeys:**
+### The rule the whole pipeline obeys
 
 > **Reshape data freely. Never *learn* from data before the split.**
 
-Joining, retyping, renaming and sorting are per-row and safe. Anything that
-computes a statistic across rows — an imputation mean, a scaler, a frequency
-encoding — is fitted on the training partition only, inside an sklearn
-`Pipeline`, so the framework enforces it rather than my memory.
+Joining, retyping, renaming and sorting are per-row operations and carry no
+information between rows. Anything that computes a statistic *across* rows — an
+imputation median, a scaler, a frequency map, a calibration curve — is fitted on
+the training partition only.
+
+Entity aggregates use **expanding, backward-only windows**: for each
+transaction, statistics over only that entity's *earlier* transactions. That is
+causal by construction, so there is no fitting step that could contaminate
+validation or test.
 
 ---
 
-## Layout
+## Stack
 
-```powershell
-python -m pytest                          # 51 tests, no dataset needed
-
-python scripts
-un_ingest.py              # Stage 1     -> interim Parquet
-python scripts
-un_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scripts
-un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
-python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scripts
-un_eval.py                # Stage 5     -> thresholds + test
-python scripts
-un_calibrate.py           # Stage 5b    -> calibration
-python scripts
-un_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scripts
-un_llm.py                 # Stages 8c-9 -> RAG + copilot
-python scriptsuild_notebooks.py         # generate + execute notebooks
-python scriptsuild_notebook_02.py
-
-uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
-streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
-```
-configs/data.yaml            paths, schema, data contract, split policy
-src/risklens/
-  config.py                  root discovery + typed config
-  data/dtypes.py             memory-efficient dtype planning
-  data/validate.py           7 data-contract assertions
-  data/ingest.py             load → validate → join → verify → persist
-  data/split.py              temporal split + embargo  ← the firewall
-  eda/profile.py             missingness, V-blocks, temporal, missing-as-signal
-  eda/stats.py               chi-square, Cramér's V, Mann-Whitney, Cliff's δ, PSI
-  eda/plots.py               7 decision-relevant figures
-  features/build.py          deterministic features + FrequencyEncoder
-  features/entity.py         causal entity aggregates (backward-only windows)
-  models/train.py            baseline + XGBoost + imbalance handling
-  models/evaluate.py         metrics, thresholds, CostModel risk engine
-  models/calibrate.py        isotonic/Platt calibration, ECE, reliability
-  models/explain.py          SHAP reason codes + leakage audit
-  models/unsupervised.py     IsolationForest + fraud typology clustering
-scripts/                     CLI entry points, in dependency order
-app/streamlit_app.py         analyst console
-notebooks/                   generated + executed, outputs embedded
-docs/                        per-stage teaching docs
-reports/                     tables, figures, manifests
-tests/                       26 tests on synthetic fixtures
-```powershell
-python -m pytest                          # 51 tests, no dataset needed
-
-python scripts
-un_ingest.py              # Stage 1     -> interim Parquet
-python scripts
-un_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scripts
-un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
-python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scripts
-un_eval.py                # Stage 5     -> thresholds + test
-python scripts
-un_calibrate.py           # Stage 5b    -> calibration
-python scripts
-un_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scripts
-un_llm.py                 # Stages 8c-9 -> RAG + copilot
-python scriptsuild_notebooks.py         # generate + execute notebooks
-python scriptsuild_notebook_02.py
-
-uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
-streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
-```
-
----
-
-## Design decisions worth defending
-
-| Decision | Why | Rejected alternative |
+| Layer | Technology | Why |
 |---|---|---|
-| **LEFT join** | Identity coverage 24.4%; INNER deletes 75.6% of data and biases the population | INNER join |
-| **float32 features, float64 money** | Halves memory; but ~7 sig-digits compounds error through sums and ratios | Uniform downcasting |
-| **Parquet** | 8.8× smaller, 40× faster, keeps dtypes, read natively by Spark | CSV |
-| **Temporal split + embargo** | Fraud is bursty and drifts; a random split is fiction | `train_test_split(shuffle=True)` |
-| **Class weighting** | Preserves calibration, which the risk engine needs | SMOTE |
-| **PR-AUC** | Only considers the positive class; ROC-AUC is optimistically biased under imbalance | Accuracy, ROC-AUC |
-| **Cost-optimal threshold** | FN costs the amount, FP costs ~£15 — asymmetric and amount-varying | Threshold 0.5, max F1 |
-| **Local LLM (Ollama)** | Zero cost, offline, no data leaves the machine | Hosted API |
+| Data | **pandas**, **PyArrow / Parquet** | columnar storage: 8.8× smaller and 40× faster to load than CSV |
+| Analysis | **NumPy**, **SciPy**, **matplotlib**, **DuckDB** | statistics and SQL over the Parquet without a server |
+| Modelling | **scikit-learn**, **XGBoost** | XGBoost handles NaN natively — 229 of 434 raw columns are >50% missing |
+| Calibration | **scikit-learn** (isotonic, Platt) | the risk engine multiplies probability by money, so probabilities must be true |
+| Explainability | **SHAP** (TreeExplainer) | exact Shapley values; explanations sum to the prediction |
+| Retrieval | **sentence-transformers**, **FAISS** | local 384-dim embeddings, exact nearest-neighbour search |
+| Generation | **Ollama** (`llama3.2:3b`) | runs locally — no transaction data leaves the machine |
+| Serving | **FastAPI**, **Uvicorn**, **Streamlit** | automatic validation and generated API docs |
+| Quality | **pytest** (62 tests) | run on synthetic fixtures — no dataset needed |
 
 ---
 
-## Non-goals
+## Repository layout
 
-Not a RAG/LLM project. The GenAI layer (Stages 8–9) sits *on top of* the ML
-system as an analyst-facing copilot; the ML system stands on its own without
-it. No transformers beyond sentence embeddings for semantic search. No GNN.
-No technology added without a justification from the data or the problem.
+```
+src/risklens/
+  config.py              project-root discovery, typed config from YAML
+  data/
+    dtypes.py            memory-aware dtype planning at parse time
+    validate.py          seven data-contract assertions
+    ingest.py            load → validate → join → verify → persist
+    split.py             temporal split with embargo  ◀── the firewall
+  eda/
+    profile.py           missingness, correlated blocks, temporal drift
+    stats.py             chi-square, Cramér's V, Mann-Whitney, Cliff's δ, PSI
+    plots.py             seven decision-relevant figures
+  features/
+    build.py             deterministic features + FrequencyEncoder
+    entity.py            causal entity aggregates (backward-only windows)
+  models/
+    train.py             baseline pipeline, XGBoost, imbalance handling
+    evaluate.py          metrics, threshold strategies, cost model
+    calibrate.py         isotonic / Platt, ECE, reliability tables
+    explain.py           SHAP reason codes and a leakage audit
+    unsupervised.py      IsolationForest, fraud typology clustering
+  genai/
+    narratives.py        scored transaction + SHAP → analyst case narrative
+    search.py            embeddings, FAISS index, document chunking
+    rag.py               retrieve → augment → generate, groundedness check
+    agent.py             tool-using investigation copilot
+  api/app.py             FastAPI scoring and investigation service
 
-**No Spark.** The data is 590,540 rows and fits in 928 MB, so Spark would be
-slower than pandas here. Reaching for it would signal buzzword-following
-rather than reasoning about fit.
+app/streamlit_app.py     analyst console
+scripts/                 CLI entry points, in dependency order
+tests/                   62 tests, synthetic fixtures, no dataset required
+configs/data.yaml        paths, schema, data contract, split policy
+corpus/policies/         illustrative fraud-operations policy documents
+notebooks/               generated and executed; outputs embedded
+reports/                 result artefacts — see below
+```
+
+---
+
+## Reports: what they are and how they are made
+
+`reports/` holds the **machine-readable output of every pipeline stage**. These
+are not decoration — three of them are read by running code.
+
+| File | Written by | Read by |
+|---|---|---|
+| `stage01_ingest_manifest.json` | `run_ingest.py` | provenance: SHA-256 of every input file |
+| `stage02_*.csv` | `run_eda.py` | missingness, statistical tests, drift, V-block structure |
+| `stage03_split_summary.json` | `run_eda.py` | exact split boundaries |
+| `stage04_05_model_results.json` | `run_train.py` | **the API and the UI read the operating threshold from here** |
+| `stage05_evaluation.json` | `run_eval.py` | the final test result |
+| `stage05b_calibration.json` | `run_calibrate.py` | reliability tables before and after |
+| `stage07_shap_importance.csv` | `run_genai.py` | feature importance; the notebook charts it |
+| `stage06_09_genai_results.json` | `run_genai.py`, `run_llm.py` | typologies, RAG answers, copilot trace |
+| `figures/*.png` | `run_eda.py` | seven analysis charts |
+
+**Why they are committed.** Two reasons.
+
+**Provenance.** `stage01_ingest_manifest.json` records the SHA-256 of each raw
+input. The dataset itself is 678 MB and is not committed — it is regenerated by
+`scripts/download_data.py`. Reproducibility therefore comes from the
+*fingerprint* plus the script, not from storing the bytes. If a re-run produces
+a different hash, results are not comparable and you find out immediately.
+
+**They are the source of truth for every number.** The documentation is
+*generated* from these files rather than typed by hand, so a written figure
+cannot drift from what the code actually produced.
+
+---
+
+## Running it
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+pip install -e .
+
+python -m pytest                          # 62 tests, no dataset needed
+```
+
+The dataset requires a Kaggle account and one-time acceptance of the
+[competition rules](https://www.kaggle.com/c/ieee-fraud-detection/rules).
+
+```powershell
+python scripts\download_data.py           # fetch train_transaction + train_identity
+
+python scripts\run_ingest.py              # ingestion       → interim Parquet
+python scripts\run_eda.py                 # EDA + split     → tables + figures
+python scripts\run_train.py --fast        # features + models        (~30 min)
+python scripts\run_all_downstream.py      # everything downstream    (~20 min)
+```
+
+`run_all_downstream.py` runs the serving schema export, evaluation,
+calibration, SHAP, retrieval, the copilot, both notebooks and the result
+summary — in dependency order, stopping on the first failure rather than
+writing artefacts that disagree with each other.
+
+```powershell
+uvicorn risklens.api.app:app --port 8000              # API → localhost:8000/docs
+streamlit run app\streamlit_app.py --server.port 8502 # UI  → localhost:8502
+```
+
+> **Resources.** ~1.9 GB disk for the dataset and derived Parquet. Training
+> peaks around 4.8 GB of RAM.
+
+---
+
+## Design decisions worth explaining
+
+| Decision | Reasoning | Rejected alternative |
+|---|---|---|
+| **LEFT join** on identity | Coverage is 24.4%; an inner join would delete 75.6% of rows and change the population being modelled | INNER join |
+| **float32 features, float64 money** | Halves memory, but ~7 significant digits compounds error through the sums and ratios in feature engineering | uniform downcasting |
+| **Parquet** | 8.8× smaller, 40× faster, preserves dtypes | CSV |
+| **Temporal split with embargo** | Fraud is bursty — one compromised card produces near-identical transactions minutes apart, which a random split would place on both sides | `train_test_split(shuffle=True)` |
+| **Class weighting** | Preserves the base rate, so predicted probabilities stay meaningful | SMOTE |
+| **Causal entity aggregates** | Backward-only windows work in production; aggregating over train+test does not | transductive aggregation |
+| **Raw entity IDs excluded** | 217,850 levels let the model memorise which customers had been defrauded rather than learn fraud behaviour | keeping them for a higher score |
+| **PR-AUC over ROC-AUC** | ROC-AUC is optimistically biased under heavy imbalance | accuracy, ROC-AUC |
+| **Cost-derived threshold** | A false negative costs the transaction amount; a false positive costs review time. Asymmetric, and one side varies | threshold 0.5, maximise F1 |
+| **Local LLM** | No transaction data leaves the machine | hosted API |
+
+---
+
+## Scope
+
+RiskLens is a fraud-detection system with an analyst-facing assistant layered
+on top. The machine-learning pipeline stands on its own; the retrieval and
+agent components consume it rather than replace it.
+
+No distributed compute — 590,540 rows fit in 928 MB, so Spark would be slower
+than pandas. No transformers beyond sentence embeddings for semantic search.
+Nothing is included without a justification from the data or the problem.
+
+---
+
+## Data
+
+IEEE-CIS Fraud Detection, Vesta Corporation, 2019 — a public Kaggle benchmark.
+Features are anonymised: `V1`–`V339` have no published meaning, addresses are
+coded integers, and email fields are domains only. The competition licence
+permits academic and non-commercial use; the dataset is not redistributed here.
