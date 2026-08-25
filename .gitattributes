@@ -1,0 +1,18 @@
+# GitHub Linguist configuration
+#
+# Notebooks are DOCUMENTATION here, not source. They are generated and
+# executed by scripts/build_notebooks.py and scripts/build_notebook_02.py -
+# the real code lives in src/ and scripts/.
+#
+# Left alone, Linguist counts .ipynb as its own language and it dominates the
+# repository language bar, because the notebooks carry embedded chart images
+# and are physically larger than the Python they demonstrate. Marking them as
+# documentation keeps them rendering normally on GitHub while reporting this
+# accurately as a Python project.
+*.ipynb linguist-documentation
+
+# Policy corpus is prose, not code.
+corpus/** linguist-documentation
+
+# Result artefacts are output data, not source.
+reports/** linguist-generated
