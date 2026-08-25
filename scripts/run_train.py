@@ -69,6 +69,9 @@ def main() -> int:
     ap.add_argument("--sample", type=int, default=0,
                     help="use only the most recent N rows (faster iteration)")
     ap.add_argument("--skip-baseline", action="store_true")
+    ap.add_argument("--fast", action="store_true",
+                    help="300 trees at lr=0.10 instead of 600 at 0.05 - "
+                         "same total learning rate budget, ~half the time")
     args = ap.parse_args()
 
     cfg = load_data_config()
@@ -172,12 +175,18 @@ def main() -> int:
     print("     WITHOUT inventing synthetic rows the way SMOTE does.\n")
 
     t0 = time.perf_counter()
-    model = build_xgboost(pd.Series(y_train))
+    xgb_kwargs = {}
+    if args.fast:
+        # 300 x 0.10 = 600 x 0.05 in total shrinkage, so expected accuracy
+        # is close; fewer, larger steps just get there sooner.
+        xgb_kwargs = dict(n_estimators=300, learning_rate=0.10)
+        print('  FAST MODE: 300 trees @ lr=0.10 (same shrinkage budget)')
+    model = build_xgboost(pd.Series(y_train), **xgb_kwargs)
     model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=100)
     fit_s = time.perf_counter() - t0
     best_it = getattr(model, "best_iteration", None)
     print(f"\n  fitted in {fit_s:.1f}s")
-    print(f"  early stopping chose {best_it} of 600 trees")
+    print(f"  early stopping chose {best_it} of {model.n_estimators} trees")
     print("  -> validation PR-AUC stopped improving there; more trees would")
     print("     have started memorising the training set.")
 

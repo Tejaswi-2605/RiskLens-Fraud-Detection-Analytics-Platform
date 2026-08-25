@@ -1,0 +1,84 @@
+# RiskLens - local deployment.
+#
+#   docker compose up --build
+#
+#   API   http://localhost:8000/docs
+#   UI    http://localhost:8501
+#
+# Two services from ONE image, differing only in their command. The API and
+# the console share the same code and the same model artefacts, which is what
+# guarantees the UI and the API can never disagree about a score.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: risklens:latest
+    container_name: risklens-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Model artefacts are MOUNTED, not baked into the image, so retraining
+      # does not require an image rebuild. Read-only: the API must never
+      # modify the artefacts it serves.
+      - ./models:/app/models:ro
+      - ./indexes:/app/indexes:ro
+      - ./reports:/app/reports:ro
+    environment:
+      # Reach the Ollama server on the host machine. Containers cannot see
+      # the host's localhost, so Docker provides this special DNS name.
+      OLLAMA_HOST: http://host.docker.internal:11434
+      PYTHONPATH: /app/src
+    extra_hosts:
+      # Required on Linux; a no-op on Docker Desktop for Windows/macOS where
+      # host.docker.internal already resolves.
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request,sys; r=urllib.request.urlopen('http://localhost:8000/health',timeout=4); sys.exit(0 if r.status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  ui:
+    image: risklens:latest
+    container_name: risklens-ui
+    # `depends_on` with `service_healthy` waits for the API to report a loaded
+    # model, not merely a running process. Starting the UI against a degraded
+    # API produces confusing errors for the user.
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./models:/app/models:ro
+      - ./indexes:/app/indexes:ro
+      - ./reports:/app/reports:ro
+    environment:
+      OLLAMA_HOST: http://host.docker.internal:11434
+      PYTHONPATH: /app/src
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: >
+      streamlit run app/streamlit_app.py
+      --server.port=8501
+      --server.address=0.0.0.0
+      --server.headless=true
+      --browser.gatherUsageStats=false
+    restart: unless-stopped
+
+# Note on Ollama
+# --------------
+# Ollama runs on the HOST, not in a container. Running it here would mean
+# shipping a 2 GB model inside the image and losing the host's GPU access
+# where one exists. The containers reach it via host.docker.internal.
+#
+# Note on the data volume
+# -----------------------
+# data/ is deliberately NOT mounted. The API scores payloads it is sent; it
+# has no reason to read the training dataset, and not mounting it means a
+# compromised container cannot exfiltrate it.
