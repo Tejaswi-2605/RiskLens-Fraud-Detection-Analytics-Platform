@@ -1,0 +1,51 @@
+# RiskLens - data layer configuration (Stage 1)
+# Single source of truth for paths, keys and the data contract.
+# Code must never hard-code a filename; it reads it from here.
+
+dataset:
+  name: ieee-cis-fraud-detection
+  kaggle_competition: ieee-fraud-detection
+  source_note: >
+    Public Kaggle benchmark dataset (IEEE-CIS Fraud Detection, 2019).
+    NOT Citi proprietary data. Used here to build a financial
+    fraud/risk detection system end-to-end.
+
+paths:
+  raw: data/raw              # immutable, exactly as downloaded
+  interim: data/interim      # joined / typed, no modelling decisions yet
+  processed: data/processed  # split + feature-engineered (later stages)
+  reports: reports
+
+files:
+  transaction: train_transaction.csv
+  identity: train_identity.csv
+
+# The joined table we produce in Stage 1.
+outputs:
+  joined: transactions_joined.parquet
+  manifest: stage01_ingest_manifest.json
+
+schema:
+  join_key: TransactionID
+  target: isFraud
+  time_column: TransactionDT      # seconds offset from an unknown reference, NOT a timestamp
+  amount_column: TransactionAmt
+
+# Hard expectations. Ingestion FAILS LOUDLY if these are violated.
+contract:
+  required_transaction_columns:
+    - TransactionID
+    - isFraud
+    - TransactionDT
+    - TransactionAmt
+  target_values: [0, 1]
+  join_type: left            # keep every transaction; identity is optional
+  allow_row_multiplication: false
+
+# Published characteristics of the public dataset, used as sanity anchors.
+# These are EXPECTATIONS to verify against the real load, not assumed facts.
+expected:
+  transaction_rows: 590540
+  identity_rows: 144233
+  approx_fraud_rate: 0.035
+  fraud_rate_tolerance: 0.005

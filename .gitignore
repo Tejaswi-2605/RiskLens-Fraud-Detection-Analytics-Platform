@@ -1,0 +1,23 @@
+# ---- Data: NEVER commit. Regenerate via scripts/download_data.py ----
+data/
+*.csv
+*.parquet
+*.zip
+
+# ---- Secrets ----
+kaggle.json
+.env
+*.pem
+
+# ---- Environment ----
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# ---- Tooling / OS ----
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+.vscode/
