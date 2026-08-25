@@ -13,3 +13,26 @@ seaborn==0.13.2
 
 # ---- Tooling ----
 pytest==8.3.4
+
+# ---- Stages 4-7: modelling, imbalance, explainability ----
+scikit-learn==1.6.0
+xgboost==2.1.3
+imbalanced-learn==0.13.0
+shap==0.46.0
+joblib==1.4.2
+duckdb==1.1.3            # SQL over the parquet, no server needed
+
+# ---- Stage 6: deep learning ----
+torch==2.5.1
+
+# ---- Stages 8-9: NLP / semantic search / RAG / agentic ----
+sentence-transformers==3.3.1
+faiss-cpu==1.9.0.post1
+ollama==0.4.5
+
+# ---- Stage 10: scale + ship ----
+pyspark==3.5.4
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+streamlit==1.41.1
+pydantic==2.10.4
