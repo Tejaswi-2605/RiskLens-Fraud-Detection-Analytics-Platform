@@ -60,3 +60,4 @@
 
   FAST MODE: 300 trees @ lr=0.10 (same shrinkage budget)
 [0]	validation_0-aucpr:0.28352
+[100]	validation_0-aucpr:0.48377
