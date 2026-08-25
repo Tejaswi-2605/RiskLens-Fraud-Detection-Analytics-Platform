@@ -1,5 +1,7 @@
 # ---- Data: NEVER commit. Regenerate via scripts/download_data.py ----
-data/
+# Leading slash anchors these to the repo root, so they do NOT accidentally
+# match the source package `src/risklens/data/`.
+/data/
 *.csv
 *.parquet
 *.zip
@@ -14,6 +16,9 @@ kaggle.json
 venv/
 __pycache__/
 *.py[cod]
+*.egg-info/
+build/
+dist/
 
 # ---- Tooling / OS ----
 .pytest_cache/
