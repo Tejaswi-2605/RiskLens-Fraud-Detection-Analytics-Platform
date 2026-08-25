@@ -477,7 +477,8 @@ suspicion should scale with how impressive your numbers look.
 them, RAG over the fraud policy corpus, and an investigation copilot whose
 tools *are* the components above.
 
-**Stage 10:** FastAPI, Streamlit, Docker, PySpark.
+**Stage 10:** a FastAPI scoring service and a Streamlit analyst console,
+both loading the exact training artefacts to prevent training/serving skew.
     """),
 ]
 

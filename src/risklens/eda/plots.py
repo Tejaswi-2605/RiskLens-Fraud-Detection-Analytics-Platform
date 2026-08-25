@@ -11,7 +11,7 @@ from pathlib import Path
 
 import matplotlib
 
-matplotlib.use("Agg")  # headless: no display needed, safe in Docker/CI
+matplotlib.use("Agg")  # headless: no display needed, safe in CI
 
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402

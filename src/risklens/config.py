@@ -8,7 +8,7 @@ hard-codes its own paths, the project silently drifts apart. So there is
 exactly one config file (configs/data.yaml) and one loader: this module.
 
 Paths in the YAML are relative to the project root, so the code runs the same
-way from a notebook, a script, a test, or a Docker container.
+way from a notebook, a script, or a test.
 """
 
 from __future__ import annotations

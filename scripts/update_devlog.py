@@ -469,7 +469,7 @@ and a runaway process.
 
 ---
 
-# Stage 10 — Scale and Ship
+# Stage 10 — Serving
 
 > **Full teaching doc:** [docs/stage10_deployment.md](docs/stage10_deployment.md)
 
@@ -477,85 +477,67 @@ and a runaway process.
 
 When features computed at **serving** time differ from those at **training**
 time - a recomputed imputation median, a different frequency map, a different
-column order - the model receives inputs it was never trained on and degrades
-**silently**. No error is raised.
+column order, a different DTYPE - the model receives inputs it was never
+trained on and degrades **silently**. No error is raised.
 
-**Our defence is structural.** The API loads the SAME artefacts the training run
-produced:
+**Our defence is structural.** The API loads the SAME artefacts the training
+run produced:
 
     models/xgboost.joblib            the fitted model
     models/frequency_encoder.joblib  the fitted encoder, TRAIN-time counts
     models/feature_names.joblib      the exact column list, in order
+    models/feature_schema.joblib     the exact dtypes, TRAIN category lists
 
-The encoder is not re-fitted. The feature list is not recomputed. And
-`reindex(columns=features)` does three jobs at once: adds missing columns as
-NaN, drops unexpected ones, and **puts them in the exact training order** -
-because XGBoost matches features positionally as well as by name.
+Nothing is re-fitted and nothing is recomputed.
+
+## Three real bugs, all found by actually running it
+
+1. **KeyError on the first live request.** The frequency encoder indexed every
+   fitted column directly, but a real payment message is sparse and omits
+   `id_31`, `DeviceInfo` and others. Absent columns now still EMIT their
+   `_freq` feature - dropping the column would shift every downstream one, and
+   XGBoost matches positionally.
+
+2. **Dtype mismatch.** Training used pandas `category`; serving produced
+   `object`. The raised error was the LUCKY outcome - a category is an integer
+   CODE plus a list, and XGBoost splits on codes, so a serving-built list means
+   "visa" could be code 0 here and code 3 at training. Silent, wrong.
+   `export_feature_schema.py` now persists the training `CategoricalDtype`.
+
+3. **Narratives printed "nan".** `_fmt` tested `isinstance(v, float)` before
+   `isnan`, but numpy `float32` is not a Python `float`, so the check never
+   fired. Now uses `pd.isna` and renders "not recorded".
 
 ## FastAPI
 
-Chosen over Flask for automatic Pydantic validation and auto-generated docs.
+Chosen over Flask for automatic Pydantic validation and generated docs.
 `TransactionAmt: float = Field(..., gt=0)` rejects a negative amount with a
-clear 422 **before our code runs** - otherwise `log1p(-50)` produces NaN which
-silently propagates into the model.
+clear 422 BEFORE our code runs - otherwise `log1p(-50)` produces NaN which
+propagates silently into the model.
 
 **Almost every field is optional** because real payment messages are sparse,
-and Stage 2 proved which fields are absent is genuine signal. A missing field
-becomes NaN, which is *correct*, not a fallback.
+and Stage 2 proved which fields are absent is genuine signal.
 
 **`/health` is deliberately honest** - it reports `degraded` when the model
 failed to load. A health check returning `ok` while every request 503s is worse
-than no health check at all.
+than none.
 
 ## Streamlit
 
-Built for a fraud **analyst**, not a data scientist: risk bands not floats,
-plain-English reason codes not `V257 = 3.2`, precedent, and policy with
-citation.
+Built for a fraud **analyst**: risk bands not floats, plain-English reason
+codes not `V257 = 3.2`, precedent, and policy with citation. Two input modes -
+hand-built (relative movement) and a real validation row (full 470 features,
+so genuine CRITICAL/DECLINE outcomes with the true label revealed).
 
-`@st.cache_resource` is essential - Streamlit reruns the whole script on every
-interaction, so without it every slider move reloads a 30 MB model.
+`@st.cache_resource` is essential: Streamlit reruns the whole script on every
+interaction.
 
-## Docker
+## Deliberately NOT included
 
-**Multi-stage build:** compilers and pip caches stay in the builder and never
-reach the runtime image. Smaller, and a compiler in a production container is
-an attacker's tool.
-
-**Layer caching:** `COPY requirements.txt` BEFORE `COPY src/`. Requirements
-change far less often than code, so editing a Python file rebuilds in seconds
-instead of reinstalling every dependency.
-
-**Non-root user**, `libgomp1` for XGBoost's OpenMP, and **models mounted
-read-only rather than baked in** so retraining needs no image rebuild.
-
-`data/` is deliberately **not** mounted - the API scores payloads it is sent and
-has no reason to read the dataset, so a compromised container cannot exfiltrate
-it.
-
-## PySpark — with an honest verdict
-
-> Our dataset is 590,540 rows and fits in 928 MB. **Spark is not needed here and
-> is slower than pandas** because of JVM startup and serialisation overhead.
-
-The interesting question is not "can you call Spark" but **"what changes when
-the data no longer fits in memory, and how much of the pipeline survives?"**
-
-For RiskLens: **the interfaces survive, the engine swaps** - and that is a
-direct payoff from Stage 1 decisions.
-
-| What ports easily | Why |
-| --- | --- |
-| Parquet | Read natively and in parallel; columns pruned, predicates pushed down |
-| Contract checks | Expressed as aggregations, which translate almost line for line |
-| Temporal split | It is a RULE over a column, not Python state |
-| Deterministic features | Row-wise, so no cross-row state to distribute |
-
-| What does NOT port | What you would do |
-| --- | --- |
-| `FrequencyEncoder` | Distributed `groupBy` + broadcast join |
-| XGBoost | `xgboost4j-spark`, or pull a sample to the driver |
-| SHAP | No distributed implementation - sample and explain on the driver |
+**Distributed compute.** The data is 590,540 rows and fits in 928 MB. Spark
+would be slower than pandas here, and reaching for it would signal
+buzzword-following rather than reasoning about fit. Knowing when NOT to use a
+tool is part of the job.
 
 ---
 

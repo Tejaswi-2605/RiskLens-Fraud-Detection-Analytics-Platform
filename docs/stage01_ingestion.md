@@ -275,8 +275,8 @@ Because a column is all one type, it compresses far better — and you can read
 
 40× matters: later stages reload constantly. 100 reloads = 42 minutes saved.
 
-**Bonus:** Spark reads Parquet natively, so Stage 10's PySpark port is a
-*port*, not a rewrite.
+**Bonus:** Parquet is the standard interchange format for analytical data, so
+this artefact is directly consumable by other tools without conversion.
 
 ---
 

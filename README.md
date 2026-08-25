@@ -36,20 +36,10 @@ Two properties make this hard, and they drive every design choice:
 | 7 | Explainability (SHAP) | ✅ | [stage06_07_unsupervised_and_shap.md](docs/stage06_07_unsupervised_and_shap.md) |
 | 8 | NLP + semantic search + RAG | ✅ | [stage08_09_genai.md](docs/stage08_09_genai.md) |
 | 9 | Agentic investigation copilot | ✅ | [stage08_09_genai.md](docs/stage08_09_genai.md) |
-| 10 | FastAPI + Streamlit | ✅ | [stage10_deployment.md](docs/stage10_deployment.md) |
-| 10 | PySpark | 📝 written, **not run** | [stage10_deployment.md](docs/stage10_deployment.md) |
-| 10 | Docker | 📝 written, **not built** | [stage10_deployment.md](docs/stage10_deployment.md) |
+| 10 | Serving — FastAPI + Streamlit | ✅ | [stage10_deployment.md](docs/stage10_deployment.md) |
 
-**Not run, and why — stated rather than hidden:**
-
-- **PySpark** needs a JVM, which isn't installed here. It is also, honestly,
-  *unnecessary for this dataset*: 590,540 rows fit in 928 MB, so Spark would be
-  slower than pandas. The script exists to answer the question that does
-  matter — which parts of the pipeline survive when data outgrows one machine —
-  and it says so explicitly in its own output.
-- **Docker** was skipped on disk grounds (Docker Desktop plus the image would
-  consume ~10 GB). The `Dockerfile` and `docker-compose.yml` are complete and
-  commented; they have simply never been built.
+Every stage in this repository has been **run on the real data**, and every
+number quoted below comes from an artefact in `reports/`.
 
 ## Headline results
 
@@ -111,10 +101,42 @@ was wrong.
 ## Setup
 
 ```powershell
+python -m pytest                          # 51 tests, no dataset needed
+
+python scriptsun_ingest.py              # Stage 1     -> interim Parquet
+python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts\export_feature_schema.py   # serving dtypes (skew guard)
+python scriptsun_eval.py                # Stage 5     -> thresholds + test
+python scriptsun_calibrate.py           # Stage 5b    -> calibration
+python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scriptsuild_notebooks.py         # generate + execute notebooks
+python scriptsuild_notebook_02.py
+
+uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
+streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
+```powershell
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 pip install -e .
+```powershell
+python -m pytest                          # 51 tests, no dataset needed
+
+python scriptsun_ingest.py              # Stage 1     -> interim Parquet
+python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts\export_feature_schema.py   # serving dtypes (skew guard)
+python scriptsun_eval.py                # Stage 5     -> thresholds + test
+python scriptsun_calibrate.py           # Stage 5b    -> calibration
+python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scriptsuild_notebooks.py         # generate + execute notebooks
+python scriptsuild_notebook_02.py
+
+uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
+streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
 ```
 
 ### Get the data
@@ -123,7 +145,39 @@ Needs a Kaggle account and one-time acceptance of the
 [competition rules](https://www.kaggle.com/c/ieee-fraud-detection/rules).
 
 ```powershell
+python -m pytest                          # 51 tests, no dataset needed
+
+python scriptsun_ingest.py              # Stage 1     -> interim Parquet
+python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts\export_feature_schema.py   # serving dtypes (skew guard)
+python scriptsun_eval.py                # Stage 5     -> thresholds + test
+python scriptsun_calibrate.py           # Stage 5b    -> calibration
+python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scriptsuild_notebooks.py         # generate + execute notebooks
+python scriptsuild_notebook_02.py
+
+uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
+streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
+```powershell
 python scripts\download_data.py       # needs ~/.kaggle/kaggle.json
+```powershell
+python -m pytest                          # 51 tests, no dataset needed
+
+python scriptsun_ingest.py              # Stage 1     -> interim Parquet
+python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts\export_feature_schema.py   # serving dtypes (skew guard)
+python scriptsun_eval.py                # Stage 5     -> thresholds + test
+python scriptsun_calibrate.py           # Stage 5b    -> calibration
+python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scriptsuild_notebooks.py         # generate + execute notebooks
+python scriptsuild_notebook_02.py
+
+uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
+streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
 ```
 
 Or download `train_transaction.csv` and `train_identity.csv` manually into
@@ -137,11 +191,43 @@ Or download `train_transaction.csv` and `train_identity.csv` manually into
 ## Running the pipeline
 
 ```powershell
+python -m pytest                          # 51 tests, no dataset needed
+
+python scriptsun_ingest.py              # Stage 1     -> interim Parquet
+python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts\export_feature_schema.py   # serving dtypes (skew guard)
+python scriptsun_eval.py                # Stage 5     -> thresholds + test
+python scriptsun_calibrate.py           # Stage 5b    -> calibration
+python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scriptsuild_notebooks.py         # generate + execute notebooks
+python scriptsuild_notebook_02.py
+
+uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
+streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
+```powershell
 python -m pytest                          # 26 tests, no dataset needed
 python scripts\run_ingest.py              # Stage 1  → interim Parquet
 python scripts\run_eda.py                 # Stages 2-3 → tables + 7 figures
 python scripts\run_train.py               # Stages 3b-5 → models + metrics
 python scripts\build_notebooks.py         # generate + execute notebooks
+```powershell
+python -m pytest                          # 51 tests, no dataset needed
+
+python scriptsun_ingest.py              # Stage 1     -> interim Parquet
+python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts\export_feature_schema.py   # serving dtypes (skew guard)
+python scriptsun_eval.py                # Stage 5     -> thresholds + test
+python scriptsun_calibrate.py           # Stage 5b    -> calibration
+python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scriptsuild_notebooks.py         # generate + execute notebooks
+python scriptsuild_notebook_02.py
+
+uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
+streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
 ```
 
 Every script has `--help`. `run_train.py --sample 150000` iterates faster.
@@ -150,6 +236,22 @@ Every script has `--help`. `run_train.py --sample 150000` iterates faster.
 
 ## Architecture
 
+```powershell
+python -m pytest                          # 51 tests, no dataset needed
+
+python scriptsun_ingest.py              # Stage 1     -> interim Parquet
+python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts\export_feature_schema.py   # serving dtypes (skew guard)
+python scriptsun_eval.py                # Stage 5     -> thresholds + test
+python scriptsun_calibrate.py           # Stage 5b    -> calibration
+python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scriptsuild_notebooks.py         # generate + execute notebooks
+python scriptsuild_notebook_02.py
+
+uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
+streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
 ```
 data/raw/*.csv                     immutable, gitignored, SHA-256 hashed
         ↓  Stage 1: load → validate → join → verify → sort
@@ -159,7 +261,23 @@ data/interim/*.parquet             77 MB, 40× faster to load than CSV
         ↓  Stages 3b-7: features → models → evaluation → SHAP
 models/*.joblib
         ↓  Stages 8-9: narratives → embeddings → RAG → agent
-        ↓  Stage 10: PySpark · FastAPI · Streamlit · Docker
+        ↓  Stage 10: FastAPI (:8000) · Streamlit (:8502)
+```powershell
+python -m pytest                          # 51 tests, no dataset needed
+
+python scriptsun_ingest.py              # Stage 1     -> interim Parquet
+python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts\export_feature_schema.py   # serving dtypes (skew guard)
+python scriptsun_eval.py                # Stage 5     -> thresholds + test
+python scriptsun_calibrate.py           # Stage 5b    -> calibration
+python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scriptsuild_notebooks.py         # generate + execute notebooks
+python scriptsuild_notebook_02.py
+
+uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
+streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
 ```
 
 **The one rule everything obeys:**
@@ -175,6 +293,22 @@ encoding — is fitted on the training partition only, inside an sklearn
 
 ## Layout
 
+```powershell
+python -m pytest                          # 51 tests, no dataset needed
+
+python scriptsun_ingest.py              # Stage 1     -> interim Parquet
+python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts\export_feature_schema.py   # serving dtypes (skew guard)
+python scriptsun_eval.py                # Stage 5     -> thresholds + test
+python scriptsun_calibrate.py           # Stage 5b    -> calibration
+python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scriptsuild_notebooks.py         # generate + execute notebooks
+python scriptsuild_notebook_02.py
+
+uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
+streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
 ```
 configs/data.yaml            paths, schema, data contract, split policy
 src/risklens/
@@ -191,11 +325,28 @@ src/risklens/
   models/evaluate.py         metrics, thresholds, CostModel risk engine
   models/explain.py          SHAP reason codes + leakage audit
   models/unsupervised.py     IsolationForest + fraud typology clustering
-scripts/                     CLI entry points
+scripts/                     CLI entry points, in dependency order
+app/streamlit_app.py         analyst console
 notebooks/                   generated + executed, outputs embedded
 docs/                        per-stage teaching docs
 reports/                     tables, figures, manifests
 tests/                       26 tests on synthetic fixtures
+```powershell
+python -m pytest                          # 51 tests, no dataset needed
+
+python scriptsun_ingest.py              # Stage 1     -> interim Parquet
+python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts\export_feature_schema.py   # serving dtypes (skew guard)
+python scriptsun_eval.py                # Stage 5     -> thresholds + test
+python scriptsun_calibrate.py           # Stage 5b    -> calibration
+python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scriptsuild_notebooks.py         # generate + execute notebooks
+python scriptsuild_notebook_02.py
+
+uvicorn risklens.api.app:app --port 8000              # API -> :8000/docs
+streamlit run app\streamlit_app.py --server.port 8502 # UI  -> :8502
 ```
 
 ---
@@ -221,3 +372,7 @@ Not a RAG/LLM project. The GenAI layer (Stages 8–9) sits *on top of* the ML
 system as an analyst-facing copilot; the ML system stands on its own without
 it. No transformers beyond sentence embeddings for semantic search. No GNN.
 No technology added without a justification from the data or the problem.
+
+**No Spark.** The data is 590,540 rows and fits in 928 MB, so Spark would be
+slower than pandas here. Reaching for it would signal buzzword-following
+rather than reasoning about fit.

@@ -1,4 +1,4 @@
-# Stage 10 — Scale and Ship: PySpark, FastAPI, Streamlit, Docker
+# Stage 10 — Serving: FastAPI and Streamlit
 
 **Every term defined in plain language, with a tiny worked example.**
 
@@ -47,6 +47,7 @@ The service loads the **same artefacts the training run produced**:
 models/xgboost.joblib            the fitted model
 models/frequency_encoder.joblib  the fitted encoder, with TRAIN-time counts
 models/feature_names.joblib      the exact column list, in order
+models/feature_schema.joblib     the exact dtypes, with TRAIN category lists
 ```
 
 - The encoder is **not re-fitted**
@@ -60,6 +61,33 @@ return df.reindex(columns=features)   # ← the line people forget
 
 **`reindex` does three jobs at once:** adds missing columns as NaN, drops
 unexpected ones, and **puts them in the exact training order.**
+
+### ⚠️ The dtype trap — this one actually bit us
+
+The API crashed on its first real request:
+
+```
+ValueError: DataFrame.dtypes for data must be int, float, bool or category.
+Invalid columns: ProductCD: object, card4: object, ...
+```
+
+At training, low-cardinality strings were pandas `category` (set during Stage 1
+ingestion). At serving, `pd.DataFrame([payload])` produces `object`.
+
+**The raised error was the lucky outcome.** The dangerous version is silent:
+
+> A `category` is stored as an integer **code** plus a categories list, and
+> XGBoost splits on the **codes**. If serving builds its own list from one row,
+> `"visa"` might be code 0 here and code 3 at training — and the model applies
+> a split it learned for a *different card network*. No error. Wrong answer.
+
+So it is not enough to cast to `category`. The **exact same categories, in the
+same order** must be used. `scripts/export_feature_schema.py` captures the
+`CategoricalDtype` from the **training partition** into
+`models/feature_schema.joblib`, and both the API and the UI cast to it.
+
+Categories come from train only, so levels appearing solely in the test period
+cannot leak in.
 
 > If serving disagrees with training, it's because an artefact is *stale* —
 > and `/health` reports which artefacts loaded, so you can tell.
@@ -175,166 +203,6 @@ serialisable results like DataFrames.
 
 ---
 
-# Docker
-
-## What it is, and the problem it solves
-
-**New term — Container:** your application plus every dependency, packaged so
-it runs identically anywhere.
-
-**The problem it solves:** *"it works on my machine."*
-
-**Tiny example.** Your laptop has Python 3.11 and xgboost 2.1.3. The server has
-Python 3.9 and xgboost 1.7. Your model file won't load. A container ships the
-exact versions with the code.
-
-## Multi-stage builds
-
-```dockerfile
-FROM python:3.11-slim AS builder    # has compilers, pip caches
-RUN pip install ...
-
-FROM python:3.11-slim AS runtime    # clean
-COPY --from=builder /usr/local/lib/python3.11/site-packages ...
-```
-
-Two benefits:
-
-| Benefit | Why |
-|---|---|
-| **Smaller image** | Compilers and caches never reach the final layer |
-| **More secure** | **A compiler in a production container is an attacker's tool.** Fewer packages = fewer CVEs |
-
-## Layer caching — the most important line in the file
-
-```dockerfile
-COPY requirements.txt pyproject.toml ./   # ← dependencies FIRST
-RUN pip install -r requirements.txt
-COPY src/ ./src/                          # ← code SECOND
-```
-
-**New term — Layer caching:** Docker caches each instruction and reuses it
-until its inputs change.
-
-**Tiny example of why the order matters.**
-
-```
-❌ Code copied first:
-   edit one .py file  →  cache invalidated  →  reinstall ALL packages (5 min)
-
-✅ Requirements copied first:
-   edit one .py file  →  requirements layer still cached  →  rebuild in 5 sec
-```
-
-Requirements change far less often than code. Put the stable thing first.
-
-## Running as non-root
-
-```dockerfile
-RUN useradd --create-home risklens
-USER risklens
-```
-
-If the application is compromised, the attacker lands as an unprivileged user
-who cannot modify system files or install packages. **Containers do not
-isolate root as strongly as people assume** — a root process in a container is
-much closer to root on the host than a non-root one.
-
-## Why `libgomp1`
-
-XGBoost uses **OpenMP** for multithreading. Omit this library and the container
-fails at import with a confusing linker error rather than a clear message.
-
-## Why models are MOUNTED, not baked in
-
-```yaml
-volumes:
-  - ./models:/app/models:ro    # ro = read-only
-```
-
-| Reason | Explanation |
-|---|---|
-| Retraining shouldn't need an image rebuild | Swap the file, restart |
-| Image layers are immutable and cached forever | A 100 MB model in a layer is there permanently |
-| `:ro` | The API must never modify the artefacts it serves |
-
-## Why `data/` is deliberately NOT mounted
-
-The API scores payloads it is *sent*. It has no reason to read the training
-dataset — and not mounting it means a compromised container **cannot
-exfiltrate it**.
-
-## `depends_on: service_healthy`
-
-```yaml
-depends_on:
-  api:
-    condition: service_healthy
-```
-
-Waits for the API to report a **loaded model**, not merely a running process.
-
----
-
-# PySpark — with an honest verdict
-
-## ⚠️ The honest framing
-
-> **Our dataset is 590,540 rows and fits in 928 MB of RAM. Spark is NOT needed
-> here, and using it is SLOWER than pandas** because of JVM startup and
-> serialisation overhead.
-
-So why include it? Because the interesting question isn't *"can you call
-Spark"* — it's:
-
-**"What changes when the data no longer fits in memory, and how much of your
-pipeline survives?"**
-
-For RiskLens the answer is: **the interfaces survive; the engine swaps.**
-
-## Why that's not luck — it's a Stage 1 payoff
-
-| Stage 1 decision | Payoff at Stage 10 |
-|---|---|
-| Persisted to **Parquet** | Spark reads it natively and in parallel, prunes columns, pushes down predicates. With CSV, Spark would infer schema and read everything |
-| Contract expressed as **aggregations** | Row counts, key uniqueness, class balance translate to Spark almost line for line |
-| Split expressed as a **rule over a column** | Not Python state, so it ports without reinterpretation |
-| Features are **row-wise** | No cross-row state to distribute |
-
-## What does NOT survive automatically
-
-| Component | Why | What you'd do |
-|---|---|---|
-| `FrequencyEncoder` | Needs counts across all rows | Distributed `groupBy` + broadcast join |
-| XGBoost | Single-machine library | `xgboost4j-spark`, or pull a sample to the driver |
-| SHAP | No distributed implementation | Sample and explain on the driver |
-
-## New terms
-
-**Lazy evaluation** — Spark builds a plan and executes nothing until you call
-an *action* like `.count()` or `.collect()`.
-
-**Tiny example.**
-```python
-df.filter(...).select(...).groupBy(...)   # nothing happens yet
-df.count()                                # NOW the whole plan runs, optimised
-```
-This lets Spark optimise the *whole* chain — e.g. pushing the filter down to
-the file read so less data is ever loaded.
-
-**Shuffle partitions** — how many partitions Spark creates after an operation
-requiring data movement. The default of 200 is designed for clusters; locally
-it creates 200 tiny tasks whose scheduling overhead exceeds the work. We set 8.
-
-## When is Spark genuinely right?
-
-- Data exceeds single-machine memory (~50M+ rows here)
-- The source is already partitioned across a data lake
-- The same job runs on a schedule over growing volumes
-- Multiple teams query the same tables concurrently
-
----
-
 # Interview Q&A
 
 ### Q1. What's training/serving skew and how did you prevent it?
@@ -357,63 +225,31 @@ absent is genuine signal — fraud is four times higher when identity data is
 present. So a missing field becomes NaN, which XGBoost routes deliberately. It
 isn't a fallback; it's information.
 
-### Q4. Why multi-stage Docker builds?
-The builder stage has compilers and pip caches; the runtime stage copies only
-the installed packages. Smaller image, and more importantly a compiler in a
-production container is an attacker's tool. Fewer packages also means fewer
-CVEs to patch.
+### Q4. You had a dtype bug in production. What was it and how did you fix it?
+At training, string columns were pandas `category`; at serving,
+`pd.DataFrame([payload])` gives `object`, and XGBoost rejected it. The error was
+the lucky outcome — a category is an integer code plus a category list, and
+XGBoost splits on the codes, so if serving builds its own list from one row the
+codes stop matching and the model applies a split learned for a different value,
+silently. I now persist the training `CategoricalDtype` and cast to it at
+serving, with the categories taken from the training partition only.
 
-### Q5. Why copy requirements before source code?
-Docker layer caching. Requirements change far less often than code, so putting
-them first means editing a Python file rebuilds in seconds instead of
-reinstalling every dependency.
-
-### Q6. Why mount models rather than bake them into the image?
-Retraining shouldn't require an image rebuild — you swap the file and restart.
-And image layers are immutable and cached forever, so a large model baked into
-a layer stays there permanently. I mount read-only because the API must never
-modify what it serves.
-
-### Q7. Your health endpoint returns "degraded". Why not just up/down?
+### Q5. Your health endpoint returns "degraded". Why not just up/down?
 Because a health check that returns OK while the model failed to load is worse
 than none — it tells your orchestrator everything is fine while every request
 returns 503. Mine reports which artefacts loaded, so the failure is diagnosable
 from the endpoint itself.
 
-### Q8. You said Spark is slower than pandas here. Why include it?
-Because the interesting question isn't whether I can call Spark — it's what
-survives when the data outgrows one machine. For RiskLens the interfaces
-survive and only the engine swaps, and that's a direct payoff from choosing
-Parquet in Stage 1 and expressing the data contract as aggregations rather than
-row-by-row Python. I'd also say clearly which parts *don't* port: the frequency
-encoder needs a distributed groupBy and broadcast, XGBoost needs
-xgboost4j-spark, and SHAP has no distributed implementation.
-
-### Q9. What is lazy evaluation and why does it help?
-Spark builds a plan and executes nothing until an action like `.count()`. That
-lets it optimise the whole chain rather than each step — for instance pushing a
-filter down into the Parquet read so less data is ever loaded.
-
-### Q10. Why run the container as a non-root user?
-If the application is compromised, the attacker lands unprivileged and can't
-modify system files or install tools. Containers don't isolate root as strongly
-as people assume — a root process inside one is much closer to host root than a
-non-root process is.
-
----
 
 # Common Mistakes
 
 1. **Recomputing statistics at serving time** — the canonical skew bug
 2. **Not pinning column order** — XGBoost matches positionally
-3. **Loading the model per request** — seconds of latency on every call
-4. **Health check that always returns OK** — worse than none
-5. **Copying source before requirements** in a Dockerfile — destroys layer caching
-6. **Running as root** in a container
-7. **Baking models into the image** — every retrain needs a rebuild
-8. **Forgetting `libgomp1`** — XGBoost fails at import with a cryptic error
-9. **Not caching in Streamlit** — reloads the model on every slider move
-10. **Using Spark for data that fits in RAM** — slower, and it signals you don't know when to use it
+3. **Not pinning column *dtypes*** — a category built at serving gets different
+   integer codes than training, so the model applies the wrong split silently
+4. **Loading the model per request** — seconds of latency on every call
+5. **A health check that always returns OK** — worse than none
+6. **Not caching in Streamlit** — reloads the model on every slider move
 
 ---
 
@@ -421,18 +257,12 @@ non-root process is.
 
 ```powershell
 # API
-uvicorn risklens.api.app:app --reload
-#   → http://localhost:8000/docs
+uvicorn risklens.api.app:app --port 8000
+#   -> http://localhost:8000/docs
 
 # Analyst console
-streamlit run app/streamlit_app.py
-#   → http://localhost:8501
-
-# Both, containerised
-docker compose up --build
-
-# PySpark demonstration (needs Java)
-python scripts/run_spark.py
+streamlit run app\streamlit_app.py --server.port 8502
+#   -> http://localhost:8502
 ```
 
 ---
@@ -442,7 +272,5 @@ python scripts/run_spark.py
 | File | Purpose |
 |---|---|
 | `src/risklens/api/app.py` | FastAPI service, skew-safe feature building |
+| `scripts/export_feature_schema.py` | Captures the training dtypes for serving |
 | `app/streamlit_app.py` | Analyst console |
-| `Dockerfile` | Multi-stage, non-root, healthchecked |
-| `docker-compose.yml` | API + UI, artefacts mounted read-only |
-| `scripts/run_spark.py` | PySpark port + honest verdict |
