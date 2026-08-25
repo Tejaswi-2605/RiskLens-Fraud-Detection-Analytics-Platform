@@ -71,7 +71,15 @@ def main() -> int:
                     help="use only the most recent N rows (faster iteration)")
     ap.add_argument("--skip-baseline", action="store_true")
     ap.add_argument("--no-entity", action="store_true",
-                    help="skip entity-linkage features (for A/B comparison)")
+                    help="skip entity-linkage features entirely (A/B baseline)")
+    ap.add_argument("--keep-entity-ids", action="store_true",
+                    help="ALSO feed the raw uid/uid2 categoricals to the model. "
+                         "Off by default: with 217,850 levels the model can "
+                         "memorise WHICH entities were defrauded rather than "
+                         "learning fraudulent behaviour, and the dataset "
+                         "propagates fraud labels across linked entities. The "
+                         "gain is real for repeat customers but collapses on "
+                         "new ones, so it inflates the offline number.")
     ap.add_argument("--fast", action="store_true",
                     help="300 trees at lr=0.10 instead of 600 at 0.05 - "
                          "same total learning rate budget, ~half the time")
@@ -143,7 +151,26 @@ def main() -> int:
     print("\n  Counts come from TRAIN ONLY. Using train+test would leak: a")
     print("  card's future frequency would inform its past prediction.")
 
-    features = select_model_features(df, target=cfg.target)
+    # The raw entity keys are IDENTITY, not behaviour. Dropped by default -
+    # see --keep-entity-ids. The AGGREGATES derived from them (count_prior,
+    # secs_since_last, amt_ratio, ...) are kept either way: those describe what
+    # the entity DID, which is what we actually want the model to learn.
+    entity_ids = ["uid", "uid2"]
+    drop = [] if args.keep_entity_ids else entity_ids
+    features = select_model_features(df, target=cfg.target, drop=drop)
+    print()
+    if drop:
+        print(f"  DROPPED raw entity ids {drop}: 217k+ levels means the model")
+        print("  could memorise WHICH entities were defrauded rather than learn")
+        print("  fraudulent behaviour - and this dataset propagates fraud labels")
+        print("  across linked entities, so that memorisation is rewarded.")
+        print("  The derived AGGREGATES are kept: they describe what the entity")
+        print("  DID, which is what we want the model to learn.")
+    else:
+        print(f"  KEEPING raw entity ids {entity_ids} (--keep-entity-ids).")
+        print("  Expect a higher score that partly reflects memorisation rather")
+        print("  than generalisable signal. Useful for comparison, not for")
+        print("  quoting as the headline result.")
     spec = split_column_types(df, features)
     print(f"\n  model features: {len(features)} "
           f"({len(spec.numeric)} numeric, {len(spec.categorical)} categorical)")

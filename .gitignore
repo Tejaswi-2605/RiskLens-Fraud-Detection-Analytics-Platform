@@ -6,6 +6,14 @@
 *.parquet
 *.zip
 
+# ---- Trained artefacts: regenerable, and binary ----
+# These are outputs, not source. Committing them bloats history permanently
+# (git stores every version of a binary in full) and they change on every
+# retrain. Anyone can rebuild them from the scripts; reproducibility comes
+# from the SHA-256 manifest in reports/, not from storing the bytes.
+/models/
+/indexes/
+
 # ---- Secrets ----
 kaggle.json
 .env
@@ -19,6 +27,10 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+
+# ---- Logs: console output, not results. The JSON/CSV in reports/ IS kept. ----
+reports/*.txt
+reports/*_log.txt
 
 # ---- Tooling / OS ----
 .pytest_cache/
