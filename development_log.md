@@ -26,6 +26,23 @@ Written stage by stage as the project is built. This is the study document.
 | 9  | Agentic investigation copilot          | ⬜      | Agentic AI, prompt engineering           |
 | 10 | Scale + ship                           | ⬜      | PySpark, FastAPI, Streamlit, Docker      |
 
+## Documentation index
+
+Each stage has a **detailed teaching doc** in `docs/` (every term defined, with
+tiny worked examples and interview Q&A). This log is the summary index.
+
+| Stage | Detailed doc | Notebook |
+| --- | --- | --- |
+| 0-1 | [docs/stage01_ingestion.md](docs/stage01_ingestion.md) | [01_ingestion_eda_split.ipynb](notebooks/01_ingestion_eda_split.ipynb) |
+| 2-3 | [docs/stage02_03_eda_and_split.md](docs/stage02_03_eda_and_split.md) | same notebook |
+
+Notebooks are **generated and executed** by `scripts/build_notebooks.py`, so
+their outputs are real results, never pasted text. Rebuild any time:
+
+```
+python scripts/build_notebooks.py
+```
+
 **Time-box:** built in one day as a working vertical slice. Depth and study happen afterwards using this log.
 
 ### Deliberate cuts (state these honestly, don't hide them)
@@ -322,10 +339,140 @@ memory, money was not.
 
 ---
 
-# Stage 2 — EDA + Data Quality + Statistics
+# Stages 2 & 3 — EDA, Statistics & the Temporal Split
 
-⬜ **Not yet started.** Blocked on the dataset download.
+> **Full teaching doc:** [docs/stage02_03_eda_and_split.md](docs/stage02_03_eda_and_split.md)
 
-**Planned:** missingness profiling, class-balance analysis, temporal drift check, distribution comparison fraud vs legitimate, hypothesis tests (chi-square for categoricals, Mann-Whitney for skewed numerics), SQL analysis via DuckDB over the Parquet, and a saved figure set.
+## What I implemented
+
+| File | Purpose |
+| --- | --- |
+| `src/risklens/data/split.py` | Temporal split, embargo, 4 safety assertions |
+| `src/risklens/eda/profile.py` | Missingness, V-blocks, temporal, missing-as-signal |
+| `src/risklens/eda/stats.py` | Chi-square + Cramer's V, Mann-Whitney + Cliff's delta, PSI |
+| `src/risklens/eda/plots.py` | 7 figures, each answering one decision-relevant question |
+| `scripts/run_eda.py` | Split-then-explore orchestration |
+| `scripts/build_notebooks.py` | Generates + executes the analysis notebook |
+| `tests/test_split.py` | 14 tests |
+
+## Why EDA comes AFTER the split
+
+If I explore everything and then choose features from what I saw, my choices
+encode knowledge of the test period. That is **human-in-the-loop leakage** and
+no assertion can detect it, because it happened in my head. So the split is
+fixed by a rule first, and EDA only ever sees the training partition.
+
+## Real results — the split
+
+```
+train  438,125 rows (74.2%)  fraud 15,364 (3.507%)  127.4 days
+val     73,096 rows (12.4%)  fraud  2,536 (3.469%)   26.3 days
+test    73,910 rows (12.5%)  fraud  2,634 (3.564%)   26.3 days
+dropped  5,409 rows (1.1%)   - embargo
+```
+
+**Why 74/12/12 and not 70/15/15:** we split by calendar time, not row count.
+Volume was higher in the earlier months, so the earliest 70% of the *calendar*
+holds 74.2% of the *rows*. Deliberate - real deployments retrain on "the last
+six months", not "the last 400,000 rows".
+
+Fraud rate is near-identical across partitions, so the split created neither
+an easy nor an impossible test set.
+
+## Bug the tests caught
+
+With `embargo_days: 0`, a row landing exactly on the boundary matched **both**
+train and val (`t <= train_end` and `t >= val_start` where the two are equal).
+Fixed by making mask lower bounds exclusive. Interval boundaries are where
+off-by-one leakage lives.
+
+## Five findings that changed the project
+
+### 1. My Stage 1 hypothesis was WRONG (the most valuable finding)
+
+I predicted missing identity data would indicate evasion. The data says the
+opposite:
+
+| Column | fraud when MISSING | fraud when PRESENT |
+| --- | --- | --- |
+| `id_04` | **2.61%** | **10.31%** |
+| `DeviceType` | 2.12% | 7.58% |
+
+**Fraud is ~4x HIGHER when identity is PRESENT.** The cause is a **confounder**:
+identity is only captured for card-not-present online transactions, which are
+inherently riskier. Identity presence is a proxy for *sales channel*, not for
+evasiveness.
+
+The direction was wrong; the LEFT-join decision was right, and more strongly
+than I had argued.
+
+### 2. TransactionAmt has no predictive power
+
+Cliff's delta = 0.0014, p = 0.78. Pick a random fraud and a random legitimate
+transaction and the fraud is bigger 50.07% of the time - a coin flip.
+Consistent with **card testing**: small unremarkable purchases to verify a
+stolen card before selling it.
+
+### 3. Fraud is strongly non-stationary
+
+Weekly fraud rate swings **2.07% -> 5.08%** (2.5x). Hard evidence that a random
+split would be indefensible.
+
+### 4. 339 V-columns collapse to 14 missingness patterns
+
+Heavy redundancy. Feature selection should operate on blocks, not columns.
+
+### 5. No drift between train and test
+
+All PSI < 0.06 = stable. Periods are distributionally comparable.
+
+## Why effect size, not p-value
+
+At 438,125 rows nearly every p-value is 0. A one-penny difference becomes
+"highly significant". The p-value says a difference is real; the **effect
+size** says whether it is big enough to matter. Only the second ranks features.
+
+## Best predictors found
+
+| Feature | Test | Effect size |
+| --- | --- | --- |
+| `D15` | Mann-Whitney | delta = -0.240 |
+| `C1` | Mann-Whitney | delta = +0.235 |
+| `C13` | Mann-Whitney | delta = -0.218 |
+| `id_31` (browser) | Chi-square | V = 0.185 |
+| `ProductCD` | Chi-square | V = 0.163 |
+| `TransactionAmt` | Mann-Whitney | delta = 0.001 (nothing) |
+
+Nothing is strong - the best is "small but real". That is normal: fraud
+detection wins by combining many weak signals, which is what boosting does.
+A single overwhelming feature would suggest leakage.
+
+## Interview talking points
+
+- *"I split before exploring, because if I pick features after seeing the test
+  period, I become the leak and no test can catch it."*
+- *"Weekly fraud rate swings 2.5x, so a random split is indefensible. I can
+  show the chart rather than assert it."*
+- *"I use an embargo between partitions because fraud is bursty - one
+  compromised card makes many near-identical transactions minutes apart, and a
+  hard boundary would split that burst across train and test."*
+- *"I rank by effect size, not p-value. At 438k rows everything is
+  significant, including differences of one penny."*
+- *"My missingness hypothesis was wrong by 4x in the opposite direction. It's a
+  channel effect - identity is only captured for card-not-present transactions.
+  I'd control for ProductCD before concluding anything about device
+  fingerprints."*
+
+## Artefacts
+
+`reports/stage02_*.csv` (6 tables), `reports/stage03_split_summary.json`,
+`reports/figures/*.png` (7 figures), `notebooks/01_ingestion_eda_split.ipynb`
+(32 cells, executed, 6 charts + 6 tables embedded).
+
+---
+
+# Stage 3b — Feature Engineering
+
+In progress.
 
 ---
