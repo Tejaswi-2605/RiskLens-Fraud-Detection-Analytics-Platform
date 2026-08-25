@@ -50,7 +50,7 @@ chosen on validation and applied unchanged.
 | Brier score (calibrated)     | 0.0238                                    |
 | Expected Calibration Error   | 0.0067                                    |
 | Precision / Recall           | 29.7% / 66.0%                             |
-| **Fraud loss avoided** | **45.6%** — £180,354 over 26 days |
+| **Fraud loss avoided** | **45.6%** — $180,354 over 26 days |
 | Generalisation gap           | −0.043                                   |
 
 A logistic-regression baseline scores 0.3137. A random model scores the base
@@ -192,22 +192,6 @@ outside it. It advises; a human decides.
 | Cost-derived threshold                     | The two error types have different and unequal costs, and one of them varies per transaction                                                  |
 | Local language model                       | No transaction data leaves the machine                                                                                                        |
 
----
-
-## Reproducibility
-
-Every number quoted here is produced by the pipeline and written out as
-structured results. Nothing is transcribed by hand, so the documentation cannot
-drift from what the code produced.
-
-The raw dataset is not committed — it is public, licensed for non-commercial
-use, and fetched by a script. A cryptographic hash of each input is recorded at
-ingestion, so any model can be traced to the exact data that produced it, and a
-run against different data is detected immediately rather than silently.
-
-Trained models and search indexes are likewise regenerated rather than stored.
-
----
 
 ## Scope
 
