@@ -1,79 +1,179 @@
 # RiskLens — Intelligent Financial Risk & Fraud Detection Platform
 
 An end-to-end fraud detection system built on the **IEEE-CIS Fraud Detection**
-dataset (public Kaggle benchmark, 2019). *Not proprietary data.*
+dataset (public Kaggle benchmark, Vesta Corporation, 2019). *Not proprietary data.*
 
-## Problem
+**590,540 transactions · 434 features · 3.499% fraud · 182 days**
 
-Given a card-not-present transaction, estimate the probability that it is
-fraudulent, and turn that probability into an auditable **approve / review /
-decline** decision under an explicit cost model.
+---
 
-Two properties make this hard, and they drive every design choice here:
+## The problem
 
-1. **Severe class imbalance** — roughly 1 fraud in 29 transactions. Accuracy is
-   meaningless; a model that predicts "never fraud" scores ~96.5%.
-2. **Time dependence** — fraud patterns drift. Any random train/test split
-   leaks the future into the past and produces a score that will not survive
-   production.
+Given a card transaction, estimate the probability it is fraudulent, and turn
+that probability into an auditable **approve / review / decline** decision under
+an explicit cost model.
 
-## Architecture
+Two properties make this hard, and they drive every design choice:
 
-```
-IEEE-CIS Data → Ingestion → Understanding → Quality → EDA/Stats
-   → Leakage-Safe Preprocessing → Feature Engineering → Temporal Split
-   → Baseline ML → Advanced ML → Imbalance → Evaluation → Anomaly Detection
-   → Deep Learning → Explainability → Calibration → Risk Engine
-   → PySpark → FastAPI → Streamlit → Docker
-```
+1. **Severe class imbalance** — 1 fraud per 27.6 legitimate transactions.
+   Accuracy is meaningless: predicting "never fraud" scores **96.5%**.
+2. **Time dependence** — fraud drifts. Our measured weekly fraud rate swings
+   **2.07% → 5.08%**. Any random train/test split leaks the future into the past.
+
+---
 
 ## Stage status
 
-| # | Stage | Status |
-|---|-------|--------|
-| 1 | Data Ingestion | ✅ implemented, 12 tests passing |
-| 2 | Data Understanding | — |
+| # | Stage | Status | Teaching doc |
+|---|---|---|---|
+| 0 | Project setup & reproducibility | ✅ | [stage01_ingestion.md](docs/stage01_ingestion.md) |
+| 1 | Data ingestion | ✅ | [stage01_ingestion.md](docs/stage01_ingestion.md) |
+| 2 | EDA + data quality + statistics | ✅ | [stage02_03_eda_and_split.md](docs/stage02_03_eda_and_split.md) |
+| 3 | Temporal split + feature engineering | ✅ | [stage02_03_eda_and_split.md](docs/stage02_03_eda_and_split.md) · [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
+| 4 | Supervised modelling | 🔄 running | [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
+| 5 | Evaluation + calibration + risk engine | 🔄 running | [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
+| 6 | Unsupervised + deep learning | ⬜ code written | — |
+| 7 | Explainability (SHAP) | ⬜ code written | — |
+| 8 | NLP + semantic search + RAG | ⬜ | — |
+| 9 | Agentic investigation copilot | ⬜ | — |
+| 10 | Scale + ship (PySpark, FastAPI, Streamlit, Docker) | ⬜ | — |
+
+**[development_log.md](development_log.md)** is the master record — what was
+built at each stage, why, how, and the interview talking points.
+
+---
+
+## Key findings so far
+
+| # | Finding | Consequence |
+|---|---|---|
+| 1 | Join preserved all **590,540** rows | Counts and rates are trustworthy |
+| 2 | **3.499%** fraud, 1 : 27.6 imbalance | Use PR-AUC, never accuracy |
+| 3 | Identity coverage only **24.4%** | LEFT join essential — INNER would delete 75.6% |
+| 4 | Fraud rate swings **2.07% → 5.08%** | Random split would be indefensible |
+| 5 | ⚠️ Fraud **4× higher when identity is PRESENT** | Channel effect, not evasion — **my hypothesis was wrong** |
+| 6 | ⚠️ `TransactionAmt` has **no** signal (δ = 0.001) | Consistent with card testing |
+| 7 | 339 V-columns → **14** missingness patterns | Heavy redundancy; use blocks not columns |
+| 8 | All PSI **< 0.06** | No drift; train and test are comparable |
+
+Finding 5 is the most instructive: I predicted missing identity meant evasion.
+The data said the opposite. The cause is a **confounder** — identity is only
+captured for card-not-present online transactions, which are inherently
+riskier. The LEFT join was more justified than I'd argued, but my causal story
+was wrong.
+
+---
 
 ## Setup
 
-```bash
+```powershell
 python -m venv .venv
-.venv\Scripts\activate            # Windows
+.venv\Scripts\activate
 pip install -r requirements.txt
 pip install -e .
 ```
 
-## Stage 1 — Ingestion
+### Get the data
 
-```bash
-python scripts/download_data.py     # needs ~/.kaggle/kaggle.json
-python scripts/run_ingest.py        # builds the interim parquet
-python -m pytest                    # 12 tests, runs without the dataset
+Needs a Kaggle account and one-time acceptance of the
+[competition rules](https://www.kaggle.com/c/ieee-fraud-detection/rules).
+
+```powershell
+python scripts\download_data.py       # needs ~/.kaggle/kaggle.json
 ```
 
-Produces:
+Or download `train_transaction.csv` and `train_identity.csv` manually into
+`data\raw\`.
 
-| Artefact | Committed? | Purpose |
-|---|---|---|
-| `data/interim/transactions_joined.parquet` | no (gitignored) | typed, joined table for all later stages |
-| `reports/stage01_ingest_manifest.json` | **yes** | provenance: SHA-256 of inputs, shapes, class balance, timings |
+> **Disk:** ~1.9 GB total. **RAM:** the pipeline peaks around 4.7 GB — close
+> other applications before running the full training.
 
-The manifest is the reproducibility anchor: the data is regenerable from the
-script, so the repo stores the *fingerprint* of the data, not the bytes.
+---
+
+## Running the pipeline
+
+```powershell
+python -m pytest                          # 26 tests, no dataset needed
+python scripts\run_ingest.py              # Stage 1  → interim Parquet
+python scripts\run_eda.py                 # Stages 2-3 → tables + 7 figures
+python scripts\run_train.py               # Stages 3b-5 → models + metrics
+python scripts\build_notebooks.py         # generate + execute notebooks
+```
+
+Every script has `--help`. `run_train.py --sample 150000` iterates faster.
+
+---
+
+## Architecture
+
+```
+data/raw/*.csv                     immutable, gitignored, SHA-256 hashed
+        ↓  Stage 1: load → validate → join → verify → sort
+data/interim/*.parquet             77 MB, 40× faster to load than CSV
+        ↓  Stage 3: TEMPORAL SPLIT  ← the leakage firewall
+   train (74.2%) │ val (12.4%) │ test (12.5%)   + 1-day embargo
+        ↓  Stages 3b-7: features → models → evaluation → SHAP
+models/*.joblib
+        ↓  Stages 8-9: narratives → embeddings → RAG → agent
+        ↓  Stage 10: PySpark · FastAPI · Streamlit · Docker
+```
+
+**The one rule everything obeys:**
+
+> **Reshape data freely. Never *learn* from data before the split.**
+
+Joining, retyping, renaming and sorting are per-row and safe. Anything that
+computes a statistic across rows — an imputation mean, a scaler, a frequency
+encoding — is fitted on the training partition only, inside an sklearn
+`Pipeline`, so the framework enforces it rather than my memory.
+
+---
 
 ## Layout
 
 ```
-configs/data.yaml            paths, schema, and the data contract
-src/risklens/config.py       root discovery + typed config
-src/risklens/data/dtypes.py  memory-efficient dtype planning
-src/risklens/data/validate.py data-contract assertions
-src/risklens/data/ingest.py  load → validate → join → verify → persist
+configs/data.yaml            paths, schema, data contract, split policy
+src/risklens/
+  config.py                  root discovery + typed config
+  data/dtypes.py             memory-efficient dtype planning
+  data/validate.py           7 data-contract assertions
+  data/ingest.py             load → validate → join → verify → persist
+  data/split.py              temporal split + embargo  ← the firewall
+  eda/profile.py             missingness, V-blocks, temporal, missing-as-signal
+  eda/stats.py               chi-square, Cramér's V, Mann-Whitney, Cliff's δ, PSI
+  eda/plots.py               7 decision-relevant figures
+  features/build.py          deterministic features + FrequencyEncoder
+  models/train.py            baseline + XGBoost + imbalance handling
+  models/evaluate.py         metrics, thresholds, CostModel risk engine
+  models/explain.py          SHAP reason codes + leakage audit
+  models/unsupervised.py     IsolationForest + fraud typology clustering
 scripts/                     CLI entry points
-tests/                       synthetic-data tests (no download required)
+notebooks/                   generated + executed, outputs embedded
+docs/                        per-stage teaching docs
+reports/                     tables, figures, manifests
+tests/                       26 tests on synthetic fixtures
 ```
+
+---
+
+## Design decisions worth defending
+
+| Decision | Why | Rejected alternative |
+|---|---|---|
+| **LEFT join** | Identity coverage 24.4%; INNER deletes 75.6% of data and biases the population | INNER join |
+| **float32 features, float64 money** | Halves memory; but ~7 sig-digits compounds error through sums and ratios | Uniform downcasting |
+| **Parquet** | 8.8× smaller, 40× faster, keeps dtypes, read natively by Spark | CSV |
+| **Temporal split + embargo** | Fraud is bursty and drifts; a random split is fiction | `train_test_split(shuffle=True)` |
+| **Class weighting** | Preserves calibration, which the risk engine needs | SMOTE |
+| **PR-AUC** | Only considers the positive class; ROC-AUC is optimistically biased under imbalance | Accuracy, ROC-AUC |
+| **Cost-optimal threshold** | FN costs the amount, FP costs ~£15 — asymmetric and amount-varying | Threshold 0.5, max F1 |
+| **Local LLM (Ollama)** | Zero cost, offline, no data leaves the machine | Hosted API |
+
+---
 
 ## Non-goals
 
-Not a RAG/LLM project. No transformers, no GNN, no technology added without a
-justification from the data or the problem.
+Not a RAG/LLM project. The GenAI layer (Stages 8–9) sits *on top of* the ML
+system as an analyst-facing copilot; the ML system stands on its own without
+it. No transformers beyond sentence embeddings for semantic search. No GNN.
+No technology added without a justification from the data or the problem.
