@@ -35,6 +35,7 @@ from risklens.config import load_data_config  # noqa: E402
 from risklens.data.ingest import load_joined  # noqa: E402
 from risklens.data.split import temporal_split  # noqa: E402
 from risklens.features.build import add_deterministic_features  # noqa: E402
+from risklens.features.entity import build_entity_features  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO,
@@ -72,6 +73,8 @@ def main() -> int:
     log.info("rebuilding features ...")
     df = load_joined(cfg)
     df = add_deterministic_features(df)
+    df = build_entity_features(df, time_col=cfg.time_column,
+                               amount_col=cfg.amount_column)
     df = encoder.transform(df)
     masks, _, _ = temporal_split(
         df, time_col=cfg.time_column, target_col=cfg.target, split_cfg=cfg.split

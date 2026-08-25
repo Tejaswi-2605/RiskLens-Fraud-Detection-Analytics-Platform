@@ -1,0 +1,21 @@
+17:16:34 | INFO    | loading parquet ...
+17:16:34 | INFO    | loaded (590540, 434)
+
+==========================================================================
+  STAGE 3b - DETERMINISTIC FEATURES
+==========================================================================
+17:16:36 | INFO    | deterministic features: 434 -> 462 columns (+28)
+  built in 2.2s -> 462 columns
+
+==========================================================================
+  STAGE 3c - ENTITY-LINKAGE FEATURES (causal)
+==========================================================================
+  The model has so far seen each transaction IN ISOLATION, but
+  fraud is a pattern over an ENTITY - one compromised card making
+  several purchases in quick succession. A single row cannot
+  express 'this is the fourth transaction on this card in twenty
+  minutes', so the model cannot learn it.
+
+17:16:37 | INFO    | normalised 15 D columns into absolute reference days
+17:16:39 | INFO    | entity keys: uid=217,850 distinct, uid2=219,998 distinct
+17:16:43 | INFO    | entity features for card1  -> 6 columns

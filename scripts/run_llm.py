@@ -136,6 +136,7 @@ def main() -> int:
     from risklens.data.ingest import load_joined
     from risklens.data.split import temporal_split
     from risklens.features.build import add_deterministic_features
+    from risklens.features.entity import build_entity_features
 
     log.info("rebuilding the validation frame ...")
     model = joblib.load(cfg.root / "models" / "xgboost.joblib")
@@ -144,6 +145,8 @@ def main() -> int:
 
     df = load_joined(cfg)
     df = add_deterministic_features(df)
+    df = build_entity_features(df, time_col=cfg.time_column,
+                               amount_col=cfg.amount_column)
     df = encoder.transform(df)
     masks, _, _ = temporal_split(df, time_col=cfg.time_column,
                                  target_col=cfg.target, split_cfg=cfg.split)

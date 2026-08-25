@@ -36,6 +36,7 @@ import pandas as pd  # noqa: E402
 from risklens.config import load_data_config  # noqa: E402
 from risklens.data.ingest import load_joined  # noqa: E402
 from risklens.data.split import temporal_split  # noqa: E402
+from risklens.features.entity import build_entity_features  # noqa: E402
 from risklens.features.build import (  # noqa: E402
     FREQ_ENCODE_COLS,
     FrequencyEncoder,
@@ -69,6 +70,8 @@ def main() -> int:
     ap.add_argument("--sample", type=int, default=0,
                     help="use only the most recent N rows (faster iteration)")
     ap.add_argument("--skip-baseline", action="store_true")
+    ap.add_argument("--no-entity", action="store_true",
+                    help="skip entity-linkage features (for A/B comparison)")
     ap.add_argument("--fast", action="store_true",
                     help="300 trees at lr=0.10 instead of 600 at 0.05 - "
                          "same total learning rate budget, ~half the time")
@@ -92,6 +95,28 @@ def main() -> int:
     t0 = time.perf_counter()
     df = add_deterministic_features(df)
     print(f"  built in {time.perf_counter() - t0:.1f}s -> {df.shape[1]} columns")
+
+    if not args.no_entity:
+        section("STAGE 3c - ENTITY-LINKAGE FEATURES (causal)")
+        print("  The model has so far seen each transaction IN ISOLATION, but")
+        print("  fraud is a pattern over an ENTITY - one compromised card making")
+        print("  several purchases in quick succession. A single row cannot")
+        print("  express 'this is the fourth transaction on this card in twenty")
+        print("  minutes', so the model cannot learn it.")
+        print()
+        t0 = time.perf_counter()
+        df = build_entity_features(
+            df, time_col=cfg.time_column, amount_col=cfg.amount_column
+        )
+        print(f"  built in {time.perf_counter() - t0:.1f}s -> {df.shape[1]} columns")
+        print()
+        print("  Every aggregate is BACKWARD-ONLY: for each transaction,")
+        print("  statistics over only that entity's EARLIER transactions.")
+        print("  The Kaggle-winning versions aggregated over train AND test,")
+        print("  which is legal in a competition and impossible in production -")
+        print("  you cannot know a card's future transactions while scoring")
+        print("  today's. Ours gives less lift and would actually work.")
+
     print("  These are ROW-WISE: computable for a single transaction at the")
     print("  API with no dataset access. That is what makes them safe to")
     print("  compute before the split - nothing is learned across rows.")
