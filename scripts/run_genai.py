@@ -108,6 +108,7 @@ def main() -> int:
           f"{audit['top_feature_share']:.1%} of total SHAP magnitude")
     imp.to_csv(cfg.reports_dir / "stage07_shap_importance.csv", index=False)
     findings["shap"] = {"top_20": imp.to_dict("records"), "leakage_audit": audit}
+    _persist(cfg, findings)
 
     # =====================================================================
     # STAGE 6 - unsupervised
@@ -131,6 +132,7 @@ def main() -> int:
     print("that means fraud is genuinely anomalous in feature space and the")
     print("detector is worth keeping as a safety net for novel attack types.")
     findings["isolation_forest"] = iso_eval
+    _persist(cfg, findings)
 
     section("STAGE 6 - FRAUD TYPOLOGIES (clustering confirmed fraud)")
     fraud_rows = val[val[cfg.target] == 1].reset_index(drop=True)
@@ -148,6 +150,7 @@ def main() -> int:
               f"avg amount {t.avg_amount:>9,.2f}")
         print(f"     signature: {t.label}")
     findings["typologies"] = [t.as_dict() for t in typologies]
+    _persist(cfg, findings)
 
     # =====================================================================
     # STAGE 8a - narratives
@@ -206,6 +209,7 @@ def main() -> int:
     print("Matching is on MEANING, via 384-dimensional sentence embeddings.")
     findings["search_demo"] = {"query": q,
                                "hits": [h.as_dict() for h in case_index.search(q, k=3)]}
+    _persist(cfg, findings)
 
     if args.skip_llm:
         _persist(cfg, findings)
@@ -278,9 +282,30 @@ def main() -> int:
 
 
 def _persist(cfg, findings: dict) -> None:
-    with open(cfg.reports_dir / "stage06_09_genai_results.json", "w",
-              encoding="utf-8") as fh:
-        json.dump(findings, fh, indent=2, default=str)
+    """Write findings, MERGING with whatever is already on disk.
+
+    Two lessons are baked into this function, both learned the hard way.
+
+    1. MERGE, do not overwrite. `run_llm.py` writes the RAG and copilot
+       results into the same artefact. A plain overwrite here would silently
+       delete them.
+
+    2. Call this after EVERY stage, not once at the end. The first run of
+       this script computed SHAP, the anomaly detector and the typologies,
+       then crashed in the RAG stage on an Ollama out-of-memory error - and
+       because persistence happened only at the end, every earlier result was
+       lost. Minutes of compute discarded by a failure in an unrelated stage.
+    """
+    path = cfg.reports_dir / "stage06_09_genai_results.json"
+    existing: dict = {}
+    if path.is_file():
+        try:
+            existing = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            log.warning("existing results file unreadable; starting fresh")
+    existing.update(findings)
+    path.write_text(json.dumps(existing, indent=2, default=str), encoding="utf-8")
+    log.info("persisted %d result sections", len(existing))
 
 
 if __name__ == "__main__":

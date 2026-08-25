@@ -51,7 +51,7 @@ from typing import Any, Callable
 import numpy as np
 import pandas as pd
 
-from risklens.genai.rag import DEFAULT_MODEL, generate
+from risklens.genai.rag import DEFAULT_MODEL, DEFAULT_NUM_CTX, generate
 
 log = logging.getLogger(__name__)
 
@@ -218,6 +218,48 @@ class FraudToolbox:
         ans = self.policy_rag.ask(question)
         return {"question": question, "guidance": ans.answer, "sources": ans.sources}
 
+    # ---- tool 6 ---------------------------------------------------------
+    def required_action(self, risk_band: str) -> dict[str, Any]:
+        """DETERMINISTIC band -> action lookup. Not RAG, not the LLM.
+
+        Why this exists
+        ---------------
+        The first copilot run produced a factual error: asked about a CRITICAL
+        alert, it reported the action as "hold and review within one hour".
+        That is the policy's row for HIGH. CRITICAL requires "decline and
+        contact the cardholder immediately". The model had shifted a row while
+        reading a markdown table.
+
+        In a compliance setting that is not a cosmetic slip - it is the
+        difference between letting a fraudulent transaction stand for an hour
+        and stopping it.
+
+        The fix is architectural rather than a better prompt: **never ask a
+        language model to perform a lookup you can perform exactly.** The
+        band-to-action mapping is a finite table with five rows. Reading it is
+        a dictionary access, not a reasoning task.
+
+        So the copilot now receives the authoritative action as a fact, and
+        the LLM's job shrinks to explaining and contextualising it. RAG still
+        supplies the surrounding narrative policy, where prose comprehension
+        genuinely is the right tool.
+        """
+        from risklens.genai.narratives import BAND_ACTIONS, BAND_OWNER
+
+        band = (risk_band or "").strip().upper()
+        if band not in BAND_ACTIONS:
+            return {
+                "error": f"unknown risk band {risk_band!r}",
+                "valid_bands": sorted(BAND_ACTIONS),
+            }
+        return {
+            "risk_band": band,
+            "required_action": BAND_ACTIONS[band],
+            "owner": BAND_OWNER[band],
+            "source": "01_risk_scoring_and_decisions.md (deterministic lookup)",
+            "note": "authoritative - read from the table, not inferred by a model",
+        }
+
     # ---- registry -------------------------------------------------------
     def registry(self) -> dict[str, Callable]:
         return {
@@ -226,6 +268,7 @@ class FraudToolbox:
             "explain_alert": self.explain_alert,
             "find_similar_cases": self.find_similar_cases,
             "lookup_policy": self.lookup_policy,
+            "required_action": self.required_action,
         }
 
     def schemas(self) -> list[dict[str, Any]]:
@@ -368,19 +411,27 @@ def investigate(
     similar = run("find_similar_cases", toolbox.find_similar_cases, query=query, k=3)
 
     band = (score or {}).get("risk_band", "MEDIUM")
+
+    # DETERMINISTIC first: the authoritative action comes from a table lookup,
+    # never from the model reading prose. See FraudToolbox.required_action.
+    action = run("required_action", toolbox.required_action, risk_band=band)
+
+    # RAG second, for the surrounding narrative policy - prose comprehension
+    # is what retrieval is actually good at.
     policy = run(
         "lookup_policy",
         toolbox.lookup_policy,
-        question=f"What action is required for a {band} risk band transaction, "
-                 f"and who owns the decision?",
+        question=f"What are the review requirements and evidence standards for "
+                 f"a {band} risk transaction?",
     )
 
     if write_summary:
-        inv.summary = _summarise(facts, score, drivers, similar, policy, model=model)
+        inv.summary = _summarise(facts, score, drivers, similar, policy,
+                                 action, model=model)
     return inv
 
 
-def _summarise(facts, score, drivers, similar, policy, *, model: str) -> str:
+def _summarise(facts, score, drivers, similar, policy, action, *, model: str) -> str:
     """Ask the LLM to write the analyst-facing summary from tool output only."""
     evidence = textwrap.dedent(f"""\
         TRANSACTION FACTS
@@ -395,7 +446,11 @@ def _summarise(facts, score, drivers, similar, policy, *, model: str) -> str:
         SIMILAR HISTORICAL CASES
         {json.dumps(similar, indent=2, default=str)}
 
-        POLICY GUIDANCE
+        REQUIRED ACTION (authoritative table lookup - use this VERBATIM,
+        do not infer the action from the policy prose below)
+        {json.dumps(action, indent=2, default=str)}
+
+        POLICY GUIDANCE (narrative context only)
         {json.dumps(policy, indent=2, default=str)}
         """)
     prompt = (
@@ -450,7 +505,7 @@ def agent_loop(
             model=model,
             messages=messages,
             tools=toolbox.schemas(),
-            options={"temperature": 0.1},
+            options={"temperature": 0.1, "num_ctx": DEFAULT_NUM_CTX},
         )
         msg = resp["message"]
         messages.append(msg)

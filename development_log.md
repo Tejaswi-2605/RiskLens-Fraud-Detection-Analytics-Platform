@@ -550,10 +550,10 @@ good compared to **what**?
 
 | Model | PR-AUC | Lift over random | ROC-AUC | Brier |
 | --- | --- | --- | --- | --- |
-| Logistic Regression (baseline) | **_pending_** | _pending_x | _pending_ | _pending_ |
-| **XGBoost** | **_pending_** | _pending_x | _pending_ | _pending_ |
+| Logistic Regression (baseline) | **0.3137** | 9.0x | 0.8370 | 0.13695 |
+| **XGBoost** | **0.5233** | 15.1x | 0.9053 | 0.05574 |
 
-Random baseline PR-AUC = the base rate = **_pending_**.
+Random baseline PR-AUC = the base rate = **0.0347**.
 Reporting PR-AUC as a *lift* matters because 0.31 means nothing on its own.
 
 ## Why XGBoost fits THIS dataset
@@ -627,13 +627,13 @@ threshold is suboptimal and why banks think in *expected loss*.
 
 | | Value |
 | --- | --- |
-| Do nothing (all fraud gets through) | _pending_ |
-| RiskLens at the cost-optimal threshold | _pending_ |
-| **Net saving** | **_pending_** (_pending_% of fraud loss avoided) |
-| Chosen threshold | _pending_ |
-| Precision / Recall | _pending_ / _pending_ |
-| Alert rate | _pending_ |
-| Fraud caught / missed | _pending_ / _pending_ |
+| Do nothing (all fraud gets through) | 396,914 |
+| RiskLens at the cost-optimal threshold | 221,422 |
+| **Net saving** | **175,491** (44.2% of fraud loss avoided) |
+| Chosen threshold | 0.4548 |
+| Precision / Recall | 27.4% / 69.8% |
+| Alert rate | 8.84% |
+| Fraud caught / missed | 1,770 / 766 |
 
 **This is what makes RiskLens a risk system rather than a classification
 exercise:** the deliverable is a number in currency, not a metric.
@@ -687,7 +687,17 @@ has 2, so `card1` gets thousands more chances to split). SHAP has no such bias.
 
 | Feature | mean abs SHAP |
 | --- | --- |
-| _pending_ | _pending_ |
+| `C13` | 0.2365 |
+| `TransactionAmt` | 0.2196 |
+| `C14` | 0.2041 |
+| `V70` | 0.1929 |
+| `card6` | 0.1906 |
+| `P_emaildomain` | 0.1804 |
+| `C1` | 0.1544 |
+| `card1_freq` | 0.1503 |
+| `C11` | 0.1271 |
+| `V258` | 0.1266 |
+
 
 ### The leakage audit
 
@@ -696,9 +706,9 @@ leakage suspect. Stage 2 established real signal here is diffuse - nothing had
 an effect size above 0.24 - so a single dominant feature usually encodes the
 answer, the split, or the time period.
 
-**Verdict:** _pending_
-Top feature `?` holds
-_pending_ of total SHAP magnitude.
+**Verdict:** healthy - importance is spread across many features, which is what genuine fraud signal looks like
+Top feature `C13` holds
+8.4% of total SHAP magnitude.
 
 ## Stage 6 — Unsupervised: what I implemented and WHY
 
@@ -720,9 +730,9 @@ scaling, and handles mixed feature scales.
 **It never sees a label.** That is the point - it must be able to flag a fraud
 type nobody has labelled yet.
 
-**Real result:** PR-AUC _pending_,
-ROC-AUC _pending_,
-**_pending_x random**.
+**Real result:** PR-AUC 0.0784,
+ROC-AUC 0.6714,
+**2.26x random**.
 
 *How to read this:* it is far worse than the supervised model, and that is
 expected - the supervised model had 15,364 labelled examples and this had zero.
@@ -748,7 +758,12 @@ analyst.**
 
 | ID | Cases | Share | Avg amount | Signature |
 | --- | --- | --- | --- | --- |
-| _pending_ | | | | |
+| 0 | 2,128 | 83.9% | 162.85 | low D11, low D2, low D15, low D10 |
+| 1 | 259 | 10.2% | 134.56 | high D13, high D6, high D14, high D15 |
+| 2 | 18 | 0.7% | 320.83 | high C4, high C14, high C6, high C11 |
+| 3 | 99 | 3.9% | 39.69 | high C12, high C7, high C2, high C8 |
+| 4 | 32 | 1.3% | 181.45 | high C5, high C9, high C13, high C14 |
+
 
 ---
 
@@ -804,7 +819,7 @@ did NOT reach for the fancier option is worth more than having used it.**
 Vectors are L2-normalised, which makes the inner product *equal* cosine
 similarity - we want the angle between meanings, not their magnitude.
 
-**Search demo:** `"_pending_"`
+**Search demo:** `"overnight transaction on an unrecognised device with a rare card"`
 
 ## Stage 8c — RAG over fraud policy
 
@@ -827,7 +842,12 @@ same answer.
 
 | Question | Sources cited | Grounded | Verdict |
 | --- | --- | --- | --- |
-| _pending_ | | | |
+| What action is required for a HIGH risk band transaction a... | 01_risk_scoring_and_decisions.md, 04_acc | 0.824 | well grounded |
+| How should decision thresholds be set, and why is maximisi... | 01_risk_scoring_and_decisions.md | 0.789 | well grounded |
+| What is the label maturity window and why does it matter f... | 03_chargebacks_and_labels.md, 06_model_g | 0.919 | well grounded |
+| What are the primary indicators of account takeover?... | 04_account_takeover.md, README.md | 0.982 | well grounded |
+| What is the capital of France?... | 03_chargebacks_and_labels.md, 06_model_g | 1.0 | correct refusal - the model de |
+
 
 The final question is deliberately out of scope. **A correctly configured RAG
 system should refuse it** - that refusal is the safety property we want. A
@@ -855,7 +875,7 @@ The agent loop has a **turn cap**. That cap is the difference between an agent
 and a runaway process.
 
 **Real investigation:** tools called ->
-_pending_
+get_transaction -> score_transaction -> explain_alert -> find_similar_cases -> required_action -> lookup_policy
 
 ---
 

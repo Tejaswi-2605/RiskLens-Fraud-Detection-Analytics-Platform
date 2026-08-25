@@ -211,14 +211,35 @@ def _join(items: list[str]) -> str:
     return ", ".join(items[:-1]) + f" and {items[-1]}"
 
 
+# The authoritative band -> action mapping, mirroring the decision table in
+# corpus/policies/01_risk_scoring_and_decisions.md.
+#
+# This is a CONSTANT rather than something a model reads out of prose. A 3B
+# model asked to read that markdown table reported CRITICAL as "hold and
+# review within one hour", which is the row for HIGH - it shifted a row. In a
+# compliance setting that is the difference between declining a fraudulent
+# transaction and letting it stand for an hour.
+#
+# Rule: never ask a language model to perform a lookup you can perform exactly.
+BAND_ACTIONS: dict[str, str] = {
+    "CRITICAL": "decline and contact the cardholder immediately",
+    "HIGH": "hold for manual review within the hour",
+    "MEDIUM": "queue for same-day analyst review",
+    "LOW": "monitor; no action unless a further alert fires",
+    "MINIMAL": "approve",
+}
+
+BAND_OWNER: dict[str, str] = {
+    "CRITICAL": "Fraud Operations",
+    "HIGH": "Fraud Operations",
+    "MEDIUM": "Fraud Operations",
+    "LOW": "Automated",
+    "MINIMAL": "Automated",
+}
+
+
 def _action(band: str) -> str:
-    return {
-        "CRITICAL": "decline and contact the cardholder immediately",
-        "HIGH": "hold for manual review within the hour",
-        "MEDIUM": "queue for same-day analyst review",
-        "LOW": "monitor; no action unless a further alert fires",
-        "MINIMAL": "approve",
-    }[band]
+    return BAND_ACTIONS[band]
 
 
 def build_corpus(

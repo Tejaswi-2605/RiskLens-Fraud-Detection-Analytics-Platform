@@ -49,6 +49,19 @@ log = logging.getLogger(__name__)
 
 DEFAULT_MODEL = "llama3.2:3b"
 
+# Context window, in tokens. This MUST be set explicitly.
+#
+# llama3.2 advertises a 128k-token context. Ollama sizes the KV cache to the
+# model's maximum unless told otherwise, and for 128k tokens that cache is
+# ~12.3 GB - which on a 16 GB machine makes the server fail at startup with
+#     ggml_backend_cpu_buffer_type_alloc_buffer: failed to allocate buffer
+# and return an HTTP 500 that looks nothing like an out-of-memory error.
+#
+# 4096 tokens comfortably holds our system prompt plus four ~180-word policy
+# chunks plus the answer, with room to spare. Larger contexts cost memory
+# quadratically in attention and buy us nothing here.
+DEFAULT_NUM_CTX = 4096
+
 # The system prompt is the main lever we have over a small model. Each rule
 # exists because small models reliably fail in that specific way.
 SYSTEM_PROMPT = """\
@@ -107,6 +120,7 @@ def generate(
     model: str = DEFAULT_MODEL,
     temperature: float = 0.1,
     num_predict: int = 400,
+    num_ctx: int = DEFAULT_NUM_CTX,
 ) -> str:
     """Call the local model.
 
@@ -114,6 +128,9 @@ def generate(
     values produce more varied wording. For creative writing that is
     desirable; for policy guidance it is a liability. We want the same
     question to produce the same answer, so we keep it near-deterministic.
+
+    num_ctx is NOT optional - see the constant's comment. Omitting it made
+    Ollama try to allocate 12.3 GB and the server returned a 500.
     """
     import ollama
 
@@ -123,7 +140,11 @@ def generate(
             {"role": "system", "content": system},
             {"role": "user", "content": prompt},
         ],
-        options={"temperature": temperature, "num_predict": num_predict},
+        options={
+            "temperature": temperature,
+            "num_predict": num_predict,
+            "num_ctx": num_ctx,
+        },
     )
     return resp["message"]["content"].strip()
 
@@ -225,6 +246,29 @@ def groundedness_check(answer: str, context_chunks: list[str]) -> dict[str, Any]
     traffic and the LLM judge on a sample.
     """
     import re
+
+    # A REFUSAL is the correct behaviour for an out-of-scope question, but its
+    # words ("provided", "policy", "cover") appear nowhere in the retrieved
+    # context, so a naive overlap score flags it as a hallucination - exactly
+    # backwards. The first version of this function did precisely that: it
+    # scored the correct refusal 0.25 and labelled it POSSIBLE HALLUCINATION.
+    #
+    # Refusing is grounded by definition: the model asserted nothing.
+    refusal_markers = (
+        "does not cover this",
+        "not covered by the provided",
+        "cannot answer from the provided",
+    )
+    lowered = answer.strip().lower()
+    if any(m in lowered for m in refusal_markers) and len(lowered) < 200:
+        return {
+            "grounded_ratio": 1.0,
+            "unsupported_terms": [],
+            "verdict": "correct refusal - the model declined to answer "
+                       "outside the retrieved context, which is the desired "
+                       "safety behaviour",
+            "method": "refusal detected; overlap scoring skipped",
+        }
 
     stop = {
         "the", "a", "an", "and", "or", "of", "to", "in", "is", "are", "for",

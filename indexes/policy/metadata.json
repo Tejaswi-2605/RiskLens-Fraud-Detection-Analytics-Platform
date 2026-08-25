@@ -1,0 +1,131 @@
+{
+  "model_name": "all-MiniLM-L6-v2",
+  "metadata": [
+    {
+      "source": "01_risk_scoring_and_decisions.md",
+      "title": "Transaction Risk Scoring and Decision Policy",
+      "chunk": 0,
+      "text": "# Transaction Risk Scoring and Decision Policy *Illustrative internal policy written for the RiskLens project. Not a real policy of any institution.* ## Purpose This policy defines how the RiskLens model score is converted into an approve, review or decline decision, and who is accountable for each outcome. ## Scope Applies to all card-present and card-not-present transactions scored by the RiskLens production model. ## Risk bands The model outputs a calibrated probability of fraud. That probability is mapped to one of five risk bands. Bands, not raw probabilities, drive operational routing. | Band | Probability | Decision | Owner | |---|---|---|---| | MINIMAL | below 0.15 | Approve automatically | Automated | | LOW | 0.15 to 0.40 | Approve, log for trend monitoring | Automated | | MEDIUM | 0.40 to 0.70 | Queue for same-day analyst review | Fraud Operations | | HIGH | 0.70 to 0.90 | Hold and review within one hour | Fraud Operations | | CRITICAL | 0.90 and above | Decline and contact cardholder immediately | Fraud Operations | ## Threshold setting Decision"
+    },
+    {
+      "source": "01_risk_scoring_and_decisions.md",
+      "title": "Transaction Risk Scoring and Decision Policy",
+      "chunk": 1,
+      "text": "Fraud Operations | | HIGH | 0.70 to 0.90 | Hold and review within one hour | Fraud Operations | | CRITICAL | 0.90 and above | Decline and contact cardholder immediately | Fraud Operations | ## Threshold setting Decision thresholds must be set by minimising expected financial loss, not by maximising a statistical metric such as F1 score or accuracy. The cost model is: - A false negative costs the full transaction amount, because the institution refunds the cardholder and absorbs the loss. - A false positive costs the analyst review time plus estimated customer friction. The standing assumption is 15 currency units per false positive. - A true positive recovers approximately 90 per cent of the transaction value; recovery is not complete because some funds have already moved. Because the false negative cost varies with transaction amount while the false positive cost is roughly fixed, a single global probability threshold is suboptimal. Higher-value transactions justify intervention at a lower probability. Amount-banded thresholds are permitted where they can be shown to reduce expected loss. ## Alert budget constraint Thresholds"
+    },
+    {
+      "source": "01_risk_scoring_and_decisions.md",
+      "title": "Transaction Risk Scoring and Decision Policy",
+      "chunk": 2,
+      "text": "the false positive cost is roughly fixed, a single global probability threshold is suboptimal. Higher-value transactions justify intervention at a lower probability. Amount-banded thresholds are permitted where they can be shown to reduce expected loss. ## Alert budget constraint Thresholds must also respect the operational alert budget. Fraud Operations can review a fixed number of alerts per day. A threshold that produces more alerts than the team can review is not viable regardless of its precision or recall, because unreviewed alerts provide no protection. Where the cost-optimal threshold exceeds the alert budget, the budget constraint takes precedence and the shortfall must be recorded in the monthly risk report. ## Precision floor Alert precision must not fall below 20 per cent sustained over any rolling seven-day period. Below this level analysts lose confidence in the queue and review quality degrades. Breach of the precision floor requires threshold recalibration within five working days. ## Override authority - A Fraud Analyst may override a MEDIUM or HIGH decision with documented reasoning. - A CRITICAL decline may only be overridden by a Fraud Team"
+    },
+    {
+      "source": "01_risk_scoring_and_decisions.md",
+      "title": "Transaction Risk Scoring and Decision Policy",
+      "chunk": 3,
+      "text": "of the precision floor requires threshold recalibration within five working days. ## Override authority - A Fraud Analyst may override a MEDIUM or HIGH decision with documented reasoning. - A CRITICAL decline may only be overridden by a Fraud Team Lead. - All overrides are logged and reviewed weekly. Override patterns are a leading indicator of model degradation. ## Review cadence Thresholds are reviewed monthly, and immediately following any of: - a Population Stability Index above 0.25 on any monitored feature - a sustained precision floor breach - a material change to the product mix or customer channel"
+    },
+    {
+      "source": "02_card_not_present_controls.md",
+      "title": "Card-Not-Present Fraud Controls",
+      "chunk": 0,
+      "text": "# Card-Not-Present Fraud Controls *Illustrative internal policy written for the RiskLens project. Not a real policy of any institution.* ## Background Card-not-present transactions carry materially higher fraud rates than card-present transactions, because the criminal does not need physical possession of the card. Analysis of the RiskLens training population found fraud rates approximately four times higher on transactions where device and identity data were captured. Device telemetry is only captured on online channels. Analysts must therefore treat the presence of device data as an indicator of channel, not as an indicator of trustworthiness. The absence of device data most often means the transaction was card-present, which is inherently lower risk. ## Elevated risk indicators The following are recognised elevated risk indicators for card-not-present transactions. No single indicator is sufficient grounds for decline. - Billing address and transaction location separated by an unusual distance. - Payer and recipient email domains that do not match. - Recently created or rarely seen email domains. - A card identifier seen only a small number of times in the trailing window. - A device fingerprint or"
+    },
+    {
+      "source": "02_card_not_present_controls.md",
+      "title": "Card-Not-Present Fraud Controls",
+      "chunk": 1,
+      "text": "unusual distance. - Payer and recipient email domains that do not match. - Recently created or rarely seen email domains. - A card identifier seen only a small number of times in the trailing window. - A device fingerprint or browser string seen only a small number of times. - Transactions occurring during overnight hours relative to the usual pattern for that cardholder. - Multiple low-value authorisations on a single card in a short window, which is characteristic of card testing. ## Card testing Card testing is the practice of making small, deliberately unremarkable purchases to confirm that a stolen card is live before selling or exploiting it. Because the amounts are chosen to look normal, transaction value alone is a weak signal and must not be used as a primary control. Where three or more low-value authorisations occur on one card within sixty minutes, the card must be placed under enhanced monitoring for twenty-four hours regardless of the individual transaction scores. ## Step-up authentication Step-up authentication should be applied in preference to outright decline where the risk band is"
+    },
+    {
+      "source": "02_card_not_present_controls.md",
+      "title": "Card-Not-Present Fraud Controls",
+      "chunk": 2,
+      "text": "one card within sixty minutes, the card must be placed under enhanced monitoring for twenty-four hours regardless of the individual transaction scores. ## Step-up authentication Step-up authentication should be applied in preference to outright decline where the risk band is MEDIUM or HIGH and the transaction value exceeds the step-up threshold. Step-up preserves the customer relationship while transferring risk to the authentication provider. Step-up is not appropriate for CRITICAL band transactions, where immediate decline and cardholder contact is required. ## Velocity controls Velocity controls limit the number and value of transactions permitted on a single card, device or billing address within a rolling window. Velocity breaches are evaluated independently of the model score and may trigger a hold even where the model score is low."
+    },
+    {
+      "source": "03_chargebacks_and_labels.md",
+      "title": "Chargebacks, Dispute Handling and Label Quality",
+      "chunk": 0,
+      "text": "# Chargebacks, Dispute Handling and Label Quality *Illustrative internal policy written for the RiskLens project. Not a real policy of any institution.* ## What a chargeback is A chargeback occurs when a cardholder disputes a transaction and the issuing bank reverses the payment. Chargebacks are the primary mechanism by which fraud is discovered and confirmed after the fact. ## Label lag and label maturity Fraud labels are derived from reported chargebacks. Chargebacks arrive weeks or months after the transaction they dispute. A transaction is therefore not reliably labelled until the dispute window has closed. The standing assumption is a one hundred and twenty day maturity window. Transactions more recent than this must be treated as having immature labels. Consequences for modelling: - Training data must exclude the most recent one hundred and twenty days, because negatives in that period include fraud that has not yet been reported. - Performance reported on immature periods will be pessimistic on recall and optimistic on precision, and must be marked as provisional. - Any sudden apparent improvement in model precision on recent data should"
+    },
+    {
+      "source": "03_chargebacks_and_labels.md",
+      "title": "Chargebacks, Dispute Handling and Label Quality",
+      "chunk": 1,
+      "text": "fraud that has not yet been reported. - Performance reported on immature periods will be pessimistic on recall and optimistic on precision, and must be marked as provisional. - Any sudden apparent improvement in model precision on recent data should be investigated as a label maturity artefact before being reported as a genuine gain. ## Label noise in the negative class Not all fraud is reported. Unreported fraud is recorded as legitimate. The negative class therefore contains an unknown proportion of true positives. This means the problem is more accurately described as positive-unlabelled than as clean binary classification. Two implications follow: - Measured precision is a lower bound. Some apparent false positives are genuine fraud that was never disputed. - Achievable precision is capped below one hundred per cent by construction, and performance targets must be set with that in mind. ## Label propagation Where a chargeback is confirmed, fraud status is propagated forward to subsequent transactions linked to the same card, email address or billing address. Modellers must be aware that this creates a dependency between the label and"
+    },
+    {
+      "source": "03_chargebacks_and_labels.md",
+      "title": "Chargebacks, Dispute Handling and Label Quality",
+      "chunk": 2,
+      "text": "mind. ## Label propagation Where a chargeback is confirmed, fraud status is propagated forward to subsequent transactions linked to the same card, email address or billing address. Modellers must be aware that this creates a dependency between the label and any feature that counts prior activity on the same entity. Such features carry a circularity risk, because they partially encode the labelling mechanism itself rather than independent evidence. Their contribution should be monitored and reported. ## Dispute handling service levels - Acknowledge cardholder dispute within one working day. - Provisional credit issued within five working days where the claim meets the presumption criteria. - Final determination within forty-five days."
+    },
+    {
+      "source": "04_account_takeover.md",
+      "title": "Account Takeover Detection and Response",
+      "chunk": 0,
+      "text": "# Account Takeover Detection and Response *Illustrative internal policy written for the RiskLens project. Not a real policy of any institution.* ## Definition Account takeover occurs when an unauthorised party gains control of a legitimate customer account and transacts as that customer. It is distinct from stolen card fraud because the account itself, including its transaction history and accumulated trust signals, is compromised. Account takeover is difficult to detect precisely because the account has a legitimate history. Controls that rely on account age or prior good behaviour are ineffective against it. ## Primary indicators - A change to the registered email address, followed by transaction activity within a short window. - A mismatch between the payer email domain and the recipient email domain where these previously matched. - A new device or browser fingerprint transacting on an established account. - A change in the billing address shortly before a high-value transaction. - Transaction timing that departs materially from the established daily pattern for that account. - A sudden increase in transaction velocity on a previously stable account. ## Combination rule"
+    },
+    {
+      "source": "04_account_takeover.md",
+      "title": "Account Takeover Detection and Response",
+      "chunk": 1,
+      "text": "A change in the billing address shortly before a high-value transaction. - Transaction timing that departs materially from the established daily pattern for that account. - A sudden increase in transaction velocity on a previously stable account. ## Combination rule Account takeover is rarely indicated by a single signal. The presence of two or more primary indicators within a twenty-four hour window escalates the case to HIGH regardless of the model score, and requires analyst review before any transaction above the review threshold is released. ## Response procedure 1. Suspend outbound transaction authority on the account. 2. Contact the cardholder using a contact method held on file prior to the suspected compromise date. Contact details changed within the suspicion window must not be used, as they may belong to the attacker. 3. Where compromise is confirmed, reset credentials, revoke all active sessions and reissue the card. 4. Review all transactions on the account within the preceding thirty days. 5. Record the confirmed compromise date, because it determines which historical transactions must be relabelled as fraud. ## Customer treatment Customers affected"
+    },
+    {
+      "source": "04_account_takeover.md",
+      "title": "Account Takeover Detection and Response",
+      "chunk": 2,
+      "text": "active sessions and reissue the card. 4. Review all transactions on the account within the preceding thirty days. 5. Record the confirmed compromise date, because it determines which historical transactions must be relabelled as fraud. ## Customer treatment Customers affected by account takeover are victims. Communication must be non-accusatory, and provisional credit should be issued in line with the disputes policy while the investigation proceeds."
+    },
+    {
+      "source": "05_alert_triage_sla.md",
+      "title": "Alert Triage and Service Levels",
+      "chunk": 0,
+      "text": "# Alert Triage and Service Levels *Illustrative internal policy written for the RiskLens project. Not a real policy of any institution.* ## Queue structure Alerts are routed to one of three queues by risk band. | Queue | Bands | Target response | |---|---|---| | Immediate | CRITICAL | Within fifteen minutes | | Priority | HIGH | Within one hour | | Standard | MEDIUM | Same working day | LOW and MINIMAL band transactions are not queued. They are logged for trend analysis only. ## Triage sequence For each alert the analyst must, in order: 1. Read the model reason codes. These state which features drove the score and in which direction. Reason codes are generated from the model itself and are faithful to it; they are not an analyst interpretation. 2. Review similar historical cases retrieved by the case search system, and note their recorded outcomes. 3. Check the relevant control policy for the indicated fraud pattern. 4. Review account and card history for velocity or pattern breaks. 5. Record a decision with written reasoning. ## Evidence"
+    },
+    {
+      "source": "05_alert_triage_sla.md",
+      "title": "Alert Triage and Service Levels",
+      "chunk": 1,
+      "text": "the case search system, and note their recorded outcomes. 3. Check the relevant control policy for the indicated fraud pattern. 4. Review account and card history for velocity or pattern breaks. 5. Record a decision with written reasoning. ## Evidence standard A decision to decline must cite at least two independent indicators. A single elevated model score is not sufficient grounds for decline, because the model is a probabilistic instrument and false positives are expected at every operating point. The reasoning recorded must be specific enough that a second analyst reading it could reach the same conclusion without re-reviewing the raw data. ## Escalation Escalate to a Fraud Team Lead where: - The transaction value exceeds the analyst authority limit. - The customer is flagged as vulnerable. - The case indicates a pattern affecting multiple accounts, which may signal a coordinated attack rather than an isolated incident. - The analyst assesses the model score as materially wrong. These cases are the most valuable input to model improvement and must be tagged for review. ## Quality assurance A random five per"
+    },
+    {
+      "source": "05_alert_triage_sla.md",
+      "title": "Alert Triage and Service Levels",
+      "chunk": 2,
+      "text": "coordinated attack rather than an isolated incident. - The analyst assesses the model score as materially wrong. These cases are the most valuable input to model improvement and must be tagged for review. ## Quality assurance A random five per cent sample of closed alerts is reviewed weekly. Reviews assess whether the recorded reasoning supports the decision that was taken, not whether the decision was correct with hindsight. Judging analysts on hindsight discourages them from acting on genuine uncertainty."
+    },
+    {
+      "source": "06_model_governance.md",
+      "title": "Model Governance and Monitoring",
+      "chunk": 0,
+      "text": "# Model Governance and Monitoring *Illustrative internal policy written for the RiskLens project. Not a real policy of any institution.* ## Scope Applies to any model whose output influences a customer transaction decision, including the RiskLens fraud scoring model. ## Validation before deployment A model may not be deployed until the following are documented and reviewed: - The training data lineage, including a cryptographic hash of each input file so that results are traceable to the exact data that produced them. - The train, validation and test partition boundaries, and confirmation that the partition is chronological rather than random. Random partitioning of time-ordered data is not permitted. - Evidence that no feature available to the model encodes information unavailable at the moment of prediction. - Performance measured on a holdout period that was not used for any modelling decision, reported using precision, recall and area under the precision-recall curve. Accuracy alone is not an acceptable measure for an imbalanced problem. - A calibration assessment, because downstream expected-loss calculations multiply the predicted probability by a monetary amount. ## Prohibited practices -"
+    },
+    {
+      "source": "06_model_governance.md",
+      "title": "Model Governance and Monitoring",
+      "chunk": 1,
+      "text": "using precision, recall and area under the precision-recall curve. Accuracy alone is not an acceptable measure for an imbalanced problem. - A calibration assessment, because downstream expected-loss calculations multiply the predicted probability by a monetary amount. ## Prohibited practices - Fitting any transformation, including imputation, scaling, encoding or feature selection, on data that includes the evaluation period. - Using a raw timestamp or a monotonically increasing identifier as a model feature, because these allow the model to identify which period a record came from rather than learning behaviour. - Resampling the validation or test partition. Evaluation must occur on the true class distribution. ## Ongoing monitoring The following are monitored and reported monthly. | Metric | Threshold | Action | |---|---|---| | Population Stability Index, per feature | Above 0.10 | Investigate | | Population Stability Index, per feature | Above 0.25 | Retrain | | Alert precision, rolling seven days | Below 0.20 | Recalibrate thresholds | | Score distribution shift | Material change | Investigate | | Analyst override rate | Rising trend | Investigate as degradation signal"
+    },
+    {
+      "source": "06_model_governance.md",
+      "title": "Model Governance and Monitoring",
+      "chunk": 2,
+      "text": "Above 0.25 | Retrain | | Alert precision, rolling seven days | Below 0.20 | Recalibrate thresholds | | Score distribution shift | Material change | Investigate | | Analyst override rate | Rising trend | Investigate as degradation signal | Population Stability Index measures how far the distribution of a feature has moved relative to the training reference period. It is the primary early warning that a model has gone stale. ## Explainability requirement Every automated decision that declines or holds a transaction must be accompanied by machine-generated reason codes identifying the features that drove the score and the direction of their contribution. Reason codes must be faithful to the model. A narrative generated by any downstream system, including a language model, must be grounded in these reason codes and must not introduce factors the model did not use. ## Challenger models A challenger model must be evaluated against the incumbent on the same holdout period using the same metrics. A challenger may only replace an incumbent where it demonstrates a material improvement that exceeds the estimated measurement uncertainty."
+    },
+    {
+      "source": "06_model_governance.md",
+      "title": "Model Governance and Monitoring",
+      "chunk": 3,
+      "text": "## Challenger models A challenger model must be evaluated against the incumbent on the same holdout period using the same metrics. A challenger may only replace an incumbent where it demonstrates a material improvement that exceeds the estimated measurement uncertainty. Where a simpler model performs comparably to a more complex one, the simpler model is preferred on explainability grounds. ## Retention Model artefacts, training manifests, threshold decisions and monthly monitoring reports are retained for seven years."
+    },
+    {
+      "source": "README.md",
+      "title": "RiskLens Policy Corpus",
+      "chunk": 0,
+      "text": "# RiskLens Policy Corpus\n\n**These documents are ILLUSTRATIVE, written for this project.**\n\nThey are *not* real policies from any bank, regulator, or card network, and\nmust not be presented as such. They exist to give the Stage 8 RAG system a\nrealistic retrieval corpus, in the same way a real deployment would index a\nbank's own internal fraud-operations manual.\n\nThey are modelled on the *kinds* of controls such manuals contain \u2014 decision\nthresholds, escalation paths, SLAs, model governance \u2014 so retrieval and\ngrounding behave realistically."
+    }
+  ]
+}

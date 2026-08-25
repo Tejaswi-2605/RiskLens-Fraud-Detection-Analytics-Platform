@@ -511,6 +511,133 @@ quantify the model's value **in currency**.
 
 ---
 
+---
+
+# ⚠️ CASE STUDY: A Real Bug I Shipped and Caught
+
+**This is the most useful story in the project. Learn to tell it.**
+
+## What happened
+
+My first cost function looked reasonable:
+
+```python
+cost = fraud_missed + false_positive_cost - recovered   # WRONG
+```
+
+It ran. Nothing crashed. It produced these headline numbers:
+
+```
+do nothing        : GBP  396,914 lost to fraud
+cost-optimal      : GBP  -66,541 net cost          <- NEGATIVE
+NET SAVING        : GBP  463,455 (116.8% of fraud loss avoided)
+chosen threshold  : 0.3386
+precision 19.6% | recall 78.3% | alert rate 13.86%
+```
+
+## How I spotted it
+
+**Two numbers were physically impossible:**
+
+1. **116.8% of fraud loss avoided.** You cannot avoid more loss than exists.
+2. **A negative net cost.** The model appears to *print money*.
+
+There is also a third, softer signal: an **alert rate of 13.86%** means
+flagging 1 in every 7 transactions, at **19.6% precision** — below the
+project's *own* 20% precision floor from the policy corpus. The optimiser had
+found a degenerate solution.
+
+## The root cause
+
+**Catching fraud AVOIDS a loss. It does not EARN revenue.**
+
+My formula subtracted the full recovered amount as though it were income. So
+every additional fraud caught made "cost" go *down* without limit, and the
+optimiser was rewarded for flagging more and more — until it flagged nearly
+everything.
+
+**Tiny example that makes it obvious.**
+
+```
+One £1,000 fraud, recovery rate 90%.
+
+WRONG formula:  0 (missed) + 0 (fp) − 900 (recovered) = −£900
+                "we made £900 by catching fraud"
+
+RIGHT formula:  0 (missed) + £100 (unrecovered) + 0 (fp) = +£100
+                "we still lost £100 of the £1,000 at risk"
+```
+
+## The fix
+
+```python
+cost = fraud_missed                      # full value, we refund it
+     + fraud_caught × (1 − recovery)     # the part we could NOT recover
+     + false_positives × review_cost     # analyst time + friction
+```
+
+## Corrected results
+
+| | Before (buggy) | After (correct) |
+|---|---|---|
+| Net cost | **−£66,541** ❌ | £221,422 ✅ |
+| Fraud loss avoided | **116.8%** ❌ | 44.2% ✅ |
+| Threshold | 0.3386 | 0.4548 |
+| Precision | 19.6% | **27.4%** |
+| Alert rate | 13.86% | **8.84%** |
+
+The corrected model is **more conservative** — exactly as it should be, once
+false positives are no longer subsidised by phantom revenue.
+
+## The invariants I now test
+
+Each of these would have caught the bug instantly:
+
+| Invariant | Why it holds |
+|---|---|
+| `cost ≥ 0` always | You cannot profit from declining transactions |
+| threshold = 1.0 → cost == do-nothing baseline | Flag nothing, lose all the fraud |
+| saving ≤ 100% | You cannot avoid more loss than exists |
+| Higher FP cost → higher threshold | The economic behaviour the engine exists to express |
+
+```python
+def test_saving_cannot_exceed_the_fraud_loss():
+    out = evaluate_full(y, p, amt)
+    assert out["value_added"]["pct_of_fraud_loss_avoided"] <= 100.0
+```
+
+## Why this is worth telling in an interview
+
+> *"My first cost model reported saving 116.8% of the fraud loss and a negative
+> net cost. Both are physically impossible, which is how I caught it — I hadn't
+> written the test yet, the number just couldn't be true.*
+>
+> *The bug was conceptual, not a typo: I'd treated caught fraud as revenue
+> rather than as avoided loss. So the optimiser was rewarded for flagging more
+> and drove the alert rate to 13.86% at 19.6% precision — below the precision
+> floor in my own policy.*
+>
+> *The fix was to ask 'of the money at risk, how much do we still lose?' I then
+> wrote four invariant tests: cost is never negative, flagging nothing equals
+> the do-nothing baseline exactly, saving never exceeds 100%, and raising the
+> false-positive cost raises the threshold. Corrected, the model avoids 44% of
+> fraud loss at 27% precision."*
+
+**What this demonstrates:** you sanity-check results against physical reality
+rather than accepting whatever the code prints; you can diagnose a *conceptual*
+error, not just a syntax one; and your instinct after a bug is to write the
+test that makes it impossible to recur.
+
+**The generalisable lesson:**
+
+> **A result that is too good is a bug report, not a success.**
+>
+> This is the same instinct as the Stage 7 leakage audit, which flags any
+> single feature holding more than 35% of SHAP magnitude. Suspicion should
+> scale with how impressive your numbers look.
+
+---
+
 # Interview Q&A
 
 ### Q1. Why did you build a logistic regression if you knew XGBoost would win?

@@ -1,0 +1,137 @@
+15:43:23 | INFO    | model llama3.2:3b, context window 4096 tokens
+
+NOTE: num_ctx is pinned to 4096. Without it Ollama
+sizes the KV cache to llama3.2's full 128k context, which needs
+~12.3 GB and fails on a 16 GB machine with an opaque HTTP 500.
+
+15:43:23 | INFO    | Loading faiss with AVX2 support.
+15:43:23 | INFO    | Successfully loaded faiss with AVX2 support.
+15:43:23 | INFO    | loaded 21 policy chunks, 1500 case narratives
+
+==========================================================================
+  STAGE 8c - RAG OVER FRAUD POLICY
+==========================================================================
+Retrieve relevant policy passages, augment the prompt with them,
+generate an answer grounded in them. The model stops being a
+knowledge source and becomes a reading-comprehension engine over
+documents we control.
+
+
+----------------------------------------------------------------------
+Q: What action is required for a HIGH risk band transaction and who owns it?
+15:43:32 | INFO    | loading embedding model all-MiniLM-L6-v2 ...
+15:43:32 | INFO    | Use pytorch device_name: cpu
+15:43:32 | INFO    | Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+A: For a HIGH risk band transaction, the action required is to "Hold and review within one hour". The owner of this decision is Fraud Operations. 
+
+[01_risk_scoring_and_decisions.md]
+
+   sources      : 01_risk_scoring_and_decisions.md, 04_account_takeover.md
+   groundedness : 0.82  (well grounded)
+   latency      : 14.6s
+
+----------------------------------------------------------------------
+Q: How should decision thresholds be set, and why is maximising F1 not appropriate?
+A: Decision thresholds must be set by minimising expected financial loss, not by maximising a statistical metric such as F1 score or accuracy. [01_risk_scoring_and_decisions.md]
+
+The provided policy does not cover this.
+
+   sources      : 01_risk_scoring_and_decisions.md
+   groundedness : 0.79  (well grounded)
+   latency      : 1.1s
+
+----------------------------------------------------------------------
+Q: What is the label maturity window and why does it matter for training data?
+A: The label maturity window is 120 days. According to [03_chargebacks_and_labels.md], "Transactions more recent than this must be treated as having immature labels."
+
+This matters for training data because, as stated in [03_chargebacks_and_labels.md], "Training data must exclude the most recent one hundred and twenty days, because negatives in that period include fraud that has not yet been reported."
+
+   sources      : 03_chargebacks_and_labels.md, 06_model_governance.md
+   groundedness : 0.92  (well grounded)
+   latency      : 1.8s
+
+----------------------------------------------------------------------
+Q: What are the primary indicators of account takeover?
+A: According to [04_account_takeover.md], the primary indicators of account takeover are:
+
+1. A change to the registered email address, followed by transaction activity within a short window.
+2. A mismatch between the payer email domain and the recipient email domain where these previously matched.
+3. A new device or browser fingerprint transacting on an established account.
+4. A change in the billing address shortly before a high-value transaction.
+5. Transaction timing that departs materially from the established daily pattern for that account.
+6. A sudden increase in transaction velocity on a previously stable account.
+
+   sources      : 04_account_takeover.md, README.md
+   groundedness : 0.98  (well grounded)
+   latency      : 2.5s
+
+----------------------------------------------------------------------
+Q: What is the capital of France?
+A: The provided policy does not cover this.
+
+   sources      : 03_chargebacks_and_labels.md, 06_model_governance.md, README.md
+   groundedness : 1.00  (correct refusal - the model declined to answer outside the retrieved context, which is the desired safety behaviour)
+   latency      : 0.3s
+
+----------------------------------------------------------------------
+The last question is out of scope ON PURPOSE. A correctly
+configured RAG system should REFUSE it rather than answer from
+general knowledge. That refusal is the safety property we want:
+a system that answers off-corpus questions will also invent policy.
+
+==========================================================================
+  STAGE 9 - INVESTIGATION COPILOT
+==========================================================================
+15:43:44 | INFO    | rebuilding the validation frame ...
+15:43:48 | INFO    | deterministic features: 434 -> 462 columns (+28)
+15:43:50 | INFO    | temporal split: train <= 11,093,711 | val [11,180,111, 13,452,421] | test >= 13,538,821 | embargo 1.0d
+15:43:50 | INFO    |   train   438125 rows (74.2%)  fraud 15364 (3.507%)  127.4 days
+15:43:50 | INFO    |   val      73096 rows (12.4%)  fraud  2536 (3.469%)  26.3 days
+15:43:50 | INFO    |   test     73910 rows (12.5%)  fraud  2634 (3.564%)  26.3 days
+Tools available - each wraps a real RiskLens component:
+  get_transaction
+  score_transaction
+  explain_alert
+  find_similar_cases
+  lookup_policy
+  required_action
+
+The GenAI layer CONSUMES the ML system rather than replacing it.
+
+Investigating the highest-scoring alert: 3478001 (probability 0.9999)
+
+15:43:52 | INFO    | loading embedding model all-MiniLM-L6-v2 ...
+15:43:52 | INFO    | Use pytorch device_name: cpu
+15:43:52 | INFO    | Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+tools called: get_transaction -> score_transaction -> explain_alert -> find_similar_cases -> required_action -> lookup_policy
+elapsed: 13.9s
+
+----------------------------------------------------------------------
+INVESTIGATION SUMMARY
+
+ASSESSMENT:
+This transaction is flagged as CRITICAL due to a high risk probability score of 0.9999, driven by multiple indicators including DeviceInfo, a count of related addresses, and id_33.
+
+KEY DRIVERS:
+The model scored this transaction as CRITICAL primarily because of the following factors:
+- DeviceInfo = VS425PP Build/LMY47V
+- a count of related addresses = 7.0
+- id_33 = 855x480
+
+PRECEDENT:
+Similar historical cases (similarity: 0.679, 0.669, 0.666) suggest that transactions with similar risk indicators have been flagged as HIGH or CRITICAL, indicating a high likelihood of fraud.
+
+POLICY:
+For a CRITICAL risk transaction, the review requirements and evidence standards are as follows:
+* The transaction must be reviewed within one hour by the Fraud Operations team.
+* The analyst must record a decision with written reasoning.
+* A decision to decline must cite at least two independent indicators.
+
+RECOMMENDED ACTION:
+The analyst should decline the transaction and contact the cardholder immediately, citing at least two independent indicators (e.g. DeviceInfo, a count of related addresses) as the reason for decline.
+----------------------------------------------------------------------
+
+==========================================================================
+  DONE
+==========================================================================
+  results -> reports/stage06_09_genai_results.json
