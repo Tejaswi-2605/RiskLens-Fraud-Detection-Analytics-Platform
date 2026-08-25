@@ -6,12 +6,9 @@
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.6-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
 [![XGBoost](https://img.shields.io/badge/XGBoost-2.1-337AB7)](https://xgboost.readthedocs.io/)
 [![SHAP](https://img.shields.io/badge/SHAP-0.46-0088CC)](https://shap.readthedocs.io/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.5%20CPU-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![FAISS](https://img.shields.io/badge/FAISS-1.9-4267B2)](https://faiss.ai/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.41-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![DuckDB](https://img.shields.io/badge/DuckDB-1.1-FFF000?logo=duckdb&logoColor=black)](https://duckdb.org/)
-[![tests](https://img.shields.io/badge/tests-62%20passing-success)](#)
 
 **Fraud risk scoring and investigation platform for card payments.**
 
@@ -46,15 +43,15 @@ future into the past and produces a score that will not survive production.
 Measured on a held-out **test period**, opened once, at a decision threshold
 chosen on validation and applied unchanged.
 
-| Metric | Value |
-|---|---|
-| **PR-AUC** | **0.5144** — 14.4× a random model |
-| ROC-AUC | 0.8969 |
-| Brier score (calibrated) | 0.0238 |
-| Expected Calibration Error | 0.0067 |
-| Precision / Recall | 29.7% / 66.0% |
+| Metric                       | Value                                     |
+| ---------------------------- | ----------------------------------------- |
+| **PR-AUC**             | **0.5144** — 14.4× a random model |
+| ROC-AUC                      | 0.8969                                    |
+| Brier score (calibrated)     | 0.0238                                    |
+| Expected Calibration Error   | 0.0067                                    |
+| Precision / Recall           | 29.7% / 66.0%                             |
 | **Fraud loss avoided** | **45.6%** — £180,354 over 26 days |
-| Generalisation gap | −0.043 |
+| Generalisation gap           | −0.043                                   |
 
 A logistic-regression baseline scores 0.3137. A random model scores the base
 rate, 0.0347 — which is why PR-AUC is reported here as a *lift* rather than as
@@ -69,12 +66,12 @@ metric.
 
 The right point also depends on how many alerts a team can actually review:
 
-| Alert budget | Precision | Recall |
-|---|---|---|
-| 0.5% of traffic | 94.0% | 13.6% |
-| 1% | 88.0% | 25.4% |
-| 2% | 71.1% | 41.0% |
-| 5% | 42.2% | 60.8% |
+| Alert budget    | Precision | Recall |
+| --------------- | --------- | ------ |
+| 0.5% of traffic | 94.0%     | 13.6%  |
+| 1%              | 88.0%     | 25.4%  |
+| 2%              | 71.1%     | 41.0%  |
+| 5%              | 42.2%     | 60.8%  |
 
 ---
 
@@ -168,33 +165,32 @@ outside it. It advises; a human decides.
 
 ## Stack
 
-| Layer | Technology |
-|---|---|
-| Data | pandas, PyArrow / Parquet |
-| Analysis | NumPy, SciPy, matplotlib, DuckDB |
-| Modelling | scikit-learn, XGBoost |
-| Explainability | SHAP |
-| Retrieval | sentence-transformers, FAISS |
-| Generation | a locally hosted language model — no transaction data leaves the machine |
-| Serving | FastAPI, Uvicorn, Streamlit |
-| Quality | pytest — 62 tests, runnable without the dataset |
+| Layer          | Technology                                                                |
+| -------------- | ------------------------------------------------------------------------- |
+| Data           | pandas, PyArrow / Parquet                                                 |
+| Modelling      | scikit-learn, XGBoost                                                     |
+| Explainability | SHAP                                                                      |
+| Retrieval      | sentence-transformers, FAISS                                              |
+| Generation     | a locally hosted language model — no transaction data leaves the machine |
+| Serving        | FastAPI, Uvicorn, Streamlit                                               |
+| Quality        | pytest — 62 tests, runnable without the dataset                          |
 
 ---
 
 ## Design decisions
 
-| Decision | Reasoning |
-|---|---|
-| Keep transactions with no identity record | Coverage is 24%; dropping them would discard three quarters of the data and change the population being modelled |
-| Preserve full precision on monetary values | Reduced precision compounds error through the sums and ratios used in feature engineering |
-| Columnar storage | An order of magnitude smaller and faster than flat files, and it preserves types |
-| Chronological split with an embargo | Fraud is bursty — one compromised card produces near-identical transactions minutes apart, which a random split would place on both sides |
-| Weight the loss rather than oversample | Preserves the base rate, so predicted probabilities stay meaningful |
-| Backward-only entity aggregates | Works in production; aggregating across the full dataset does not |
-| Exclude raw entity identifiers | With hundreds of thousands of levels, the model memorises which customers were previously defrauded instead of learning what fraud looks like |
-| Precision-recall over ROC | ROC is optimistically biased under heavy imbalance |
-| Cost-derived threshold | The two error types have different and unequal costs, and one of them varies per transaction |
-| Local language model | No transaction data leaves the machine |
+| Decision                                   | Reasoning                                                                                                                                     |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Keep transactions with no identity record  | Coverage is 24%; dropping them would discard three quarters of the data and change the population being modelled                              |
+| Preserve full precision on monetary values | Reduced precision compounds error through the sums and ratios used in feature engineering                                                     |
+| Columnar storage                           | An order of magnitude smaller and faster than flat files, and it preserves types                                                              |
+| Chronological split with an embargo        | Fraud is bursty — one compromised card produces near-identical transactions minutes apart, which a random split would place on both sides    |
+| Weight the loss rather than oversample     | Preserves the base rate, so predicted probabilities stay meaningful                                                                           |
+| Backward-only entity aggregates            | Works in production; aggregating across the full dataset does not                                                                             |
+| Exclude raw entity identifiers             | With hundreds of thousands of levels, the model memorises which customers were previously defrauded instead of learning what fraud looks like |
+| Precision-recall over ROC                  | ROC is optimistically biased under heavy imbalance                                                                                            |
+| Cost-derived threshold                     | The two error types have different and unequal costs, and one of them varies per transaction                                                  |
+| Local language model                       | No transaction data leaves the machine                                                                                                        |
 
 ---
 

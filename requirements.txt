@@ -4,12 +4,10 @@ pandas==2.2.3
 pyarrow==18.1.0          # Parquet engine
 PyYAML==6.0.2            # config files
 kaggle==1.6.17           # dataset download (needs ~/.kaggle/kaggle.json)
-tqdm==4.67.1
 
 # ---- Stage 2-4: EDA + statistics ----
 scipy==1.14.1
 matplotlib==3.9.3
-seaborn==0.13.2
 
 # ---- Tooling ----
 pytest==8.3.4
@@ -17,10 +15,8 @@ pytest==8.3.4
 # ---- Stages 4-7: modelling, imbalance, explainability ----
 scikit-learn==1.6.0
 xgboost==2.1.3
-imbalanced-learn==0.13.0
 shap==0.46.0
 joblib==1.4.2
-duckdb==1.1.3            # SQL over the parquet, no server needed
 
 # ---- Stage 6: deep learning ----
 torch==2.5.1
