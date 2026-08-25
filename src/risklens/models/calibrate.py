@@ -198,35 +198,103 @@ class ProbabilityCalibrator:
     __call__ = transform
 
 
+def count_inversions(raw: np.ndarray, calibrated: np.ndarray) -> int:
+    """How many pairs did the calibrator actually REORDER? Should be zero.
+
+    Why this rather than comparing PR-AUC before and after
+    ------------------------------------------------------
+    The obvious check is "PR-AUC must be unchanged, because the map is
+    monotonic". That check FAILS on a correct isotonic calibrator, and the
+    first version of this module reported a spurious failure because of it.
+
+    Isotonic regression is a STEP function. On our data it collapsed 36,490
+    distinct scores into 90 distinct values. It never reorders anything, but
+    it creates enormous numbers of TIES - and `average_precision` treats tied
+    scores differently from distinct ones, so PR-AUC moves.
+
+    ROC-AUC barely moves under the same transformation, because it averages
+    over ties.
+
+    So the honest test of "did the ranking survive" is: sort by the raw score
+    and confirm the calibrated score never decreases. Equal is fine; lower is
+    a genuine inversion.
+    """
+    order = np.argsort(raw, kind="mergesort")
+    return int((np.diff(np.asarray(calibrated)[order]) < -1e-12).sum())
+
+
 def fit_and_compare(
     cal_scores: np.ndarray,
     cal_y: np.ndarray,
     eval_scores: np.ndarray,
     eval_y: np.ndarray,
-) -> tuple[ProbabilityCalibrator, CalibrationResult, dict[str, float]]:
-    """Fit both methods on the calibration slice, pick the better on Brier.
+    *,
+    tie_penalty_margin: float = 0.10,
+) -> tuple[ProbabilityCalibrator, CalibrationResult, dict[str, dict[str, float]]]:
+    """Fit both methods on the calibration slice and choose between them.
 
-    Selection is made on the EVALUATION slice, not the calibration slice -
+    Selection happens on the EVALUATION slice, not the calibration slice -
     judging a fitted transformation on the data it was fitted to would always
     favour the more flexible method (isotonic), which is precisely the
     overfitting we are trying to detect.
+
+    Selection is NOT purely on Brier, and that is deliberate
+    --------------------------------------------------------
+    Isotonic usually wins on Brier, but it wins by collapsing the score into a
+    small number of steps. That costs us something real: with only ~90
+    distinct values, we can no longer place a threshold at an arbitrary alert
+    budget, because whole blocks of transactions share one score.
+
+    Platt scaling is strictly monotonic, so it preserves every distinct score
+    and every achievable operating point.
+
+    So: prefer isotonic only if it beats Platt on Brier by more than
+    `tie_penalty_margin` (10%). If the two are close, take Platt and keep the
+    ranking granularity. That is a judgement call, and it is written down here
+    rather than hidden.
     """
-    scores_by_method: dict[str, float] = {}
+    stats: dict[str, dict[str, float]] = {}
     fitted: dict[str, ProbabilityCalibrator] = {}
 
     for method in ("isotonic", "sigmoid"):
         c = ProbabilityCalibrator(method).fit(cal_scores, cal_y)
         p = c.transform(eval_scores)
-        scores_by_method[method] = float(brier_score_loss(eval_y, p))
+        stats[method] = {
+            "brier": float(brier_score_loss(eval_y, p)),
+            "ece": expected_calibration_error(eval_y, p),
+            "distinct_values": int(len(np.unique(p))),
+            "inversions": count_inversions(eval_scores, p),
+        }
         fitted[method] = c
-        log.info("calibration %-9s -> Brier %.6f", method, scores_by_method[method])
+        log.info(
+            "calibration %-9s Brier %.6f  ECE %.5f  %d distinct values",
+            method, stats[method]["brier"], stats[method]["ece"],
+            stats[method]["distinct_values"],
+        )
 
-    best = min(scores_by_method, key=scores_by_method.get)
+    b_iso = stats["isotonic"]["brier"]
+    b_sig = stats["sigmoid"]["brier"]
+    # relative improvement of isotonic over Platt
+    edge = (b_sig - b_iso) / b_sig if b_sig else 0.0
+    if edge > tie_penalty_margin:
+        best = "isotonic"
+        why = (f"isotonic beats Platt on Brier by {edge:.1%}, more than the "
+               f"{tie_penalty_margin:.0%} margin, so the extra flexibility is "
+               "worth the loss of score granularity")
+    else:
+        best = "sigmoid"
+        why = (f"isotonic beats Platt on Brier by only {edge:.1%}, under the "
+               f"{tie_penalty_margin:.0%} margin. Platt is strictly monotonic "
+               "so it preserves every distinct score and every achievable "
+               "alert budget - the better trade here")
+
+    log.info("selected %s: %s", best, why)
     calibrator = fitted[best]
     p_after = calibrator.transform(eval_scores)
+    scores_by_method = {m: s["brier"] for m, s in stats.items()}
 
     b_before = float(brier_score_loss(eval_y, eval_scores))
-    b_after = scores_by_method[best]
+    b_after = stats[best]["brier"]
 
     result = CalibrationResult(
         method=best,
@@ -241,7 +309,8 @@ def fit_and_compare(
     )
     log.info("selected %s: Brier %.6f -> %.6f (%.1f%% better)",
              best, b_before, b_after, result.improvement_pct)
-    return calibrator, result, scores_by_method
+    stats["_selection"] = {"chosen": best, "reason": why}
+    return calibrator, result, stats
 
 
 def reliability_table(

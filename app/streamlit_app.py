@@ -150,86 +150,343 @@ if page == "Score a transaction":
         st.error("No model loaded. Run `python scripts/run_train.py` first.")
         st.stop()
 
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        amount = st.number_input("Amount", min_value=0.01, value=425.50, step=10.0)
-        product = st.selectbox("Product code", ["W", "C", "H", "R", "S"], index=1)
-        card4 = st.selectbox("Card network", ["visa", "mastercard", "american express",
-                                              "discover"], index=0)
-    with c2:
-        card6 = st.selectbox("Card type", ["credit", "debit"], index=0)
-        email = st.selectbox(
-            "Payer email domain",
-            ["gmail.com", "outlook.com", "hotmail.com", "yahoo.com", "anonymous.com"],
-            index=1,
+    mode = st.radio(
+        "Input mode",
+        ["Build one by hand", "Load a real transaction from the dataset"],
+        horizontal=True,
+        help=(
+            "Hand-built transactions supply only ~8 of the 470 features, so the "
+            "model stays uncertain and every answer lands on APPROVE. Loading a "
+            "real row gives it all 470 features, which is how it actually scores "
+            "in production."
+        ),
+    )
+
+    # -------------------------------------------------------------------
+    # Mode B: score an actual row from the validation partition
+    # -------------------------------------------------------------------
+    if mode == "Load a real transaction from the dataset":
+        st.caption(
+            "These are real transactions from the **validation** partition — "
+            "never used to fit the model. With all 470 features present the "
+            "model can be genuinely confident, so you will see HIGH and "
+            "CRITICAL bands and REVIEW/DECLINE decisions."
         )
-        device = st.selectbox("Device type", ["(missing)", "desktop", "mobile"], index=2)
-    with c3:
-        hour = st.slider("Hour of day (relative)", 0, 23, 3)
-        dist1 = st.number_input("Billing distance", min_value=0.0, value=0.0, step=10.0)
-        include_dist = st.checkbox("Include distance", value=False)
 
-    if st.button("Score", type="primary", use_container_width=True):
-        from risklens.api.app import STATE, build_features
-        from risklens.api.app import TransactionIn
-
-        STATE.update({k: A[k] for k in ("model", "encoder", "features", "schema")
-                      if k in A})
-
-        payload = TransactionIn(
-            TransactionAmt=amount,
-            TransactionDT=hour * 3600 + 86_400,
-            ProductCD=product,
-            card4=card4,
-            card6=card6,
-            P_emaildomain=email,
-            DeviceType=None if device == "(missing)" else device,
-            dist1=dist1 if include_dist else None,
-        )
-        X = build_features(payload)
-        prob = float(A["model"].predict_proba(X)[:, 1][0])
-
-        from risklens.genai.narratives import band_risk
-
-        band = band_risk(prob)
-        decision = ("DECLINE" if prob >= max(A["threshold"], 0.90)
-                    else "REVIEW" if prob >= A["threshold"] else "APPROVE")
-
-        st.markdown("---")
-        m1, m2, m3 = st.columns(3)
-        m1.metric("Fraud probability", f"{prob:.2%}")
-        m2.markdown(
-            f"<div style='padding:14px;border-radius:8px;text-align:center;"
-            f"background:{BAND_COLOR[band]};color:white;font-weight:700;"
-            f"font-size:22px'>{band}</div>",
-            unsafe_allow_html=True,
-        )
-        m3.metric("Decision", decision)
-
-        if "explainer" in A:
+        @st.cache_data
+        def load_examples():
+            """Pre-score the validation set and keep a spread of risk levels."""
             import numpy as np
 
-            from risklens.genai.narratives import humanise
+            from risklens.data.ingest import load_joined
+            from risklens.data.split import temporal_split
+            from risklens.features.build import add_deterministic_features
 
+            cfg = A["cfg"]
+            df = load_joined(cfg)
+            df = add_deterministic_features(df)
+            df = A["encoder"].transform(df)
+            masks, _, _ = temporal_split(
+                df, time_col=cfg.time_column, target_col=cfg.target,
+                split_cfg=cfg.split,
+            )
+            val = df[masks["val"]].reset_index(drop=True)
+            del df
+            p = A["model"].predict_proba(val[A["features"]])[:, 1]
+            val = val.assign(_prob=p)
+            # a spread across the score range, not just the extremes
+            order = np.argsort(p)[::-1]
+            picks = list(order[:8]) + list(order[len(order)//3::len(order)//12][:6]) \
+                    + list(order[-4:])
+            keep = val.iloc[sorted(set(picks))]
+            return keep.reset_index(drop=True)
+
+        with st.spinner("Scoring the validation partition (first time only)..."):
+            ex = load_examples()
+
+        labels = [
+            f"#{int(r.TransactionID)}  |  {r._prob:>6.1%}  |  "
+            f"{r.TransactionAmt:>9,.2f}  |  "
+            f"{'FRAUD' if r.isFraud == 1 else 'legitimate'}"
+            for r in ex.itertuples()
+        ]
+        pick = st.selectbox("Transaction (probability | amount | actual outcome)",
+                            range(len(labels)), format_func=lambda i: labels[i])
+        row = ex.iloc[[pick]]
+
+        if st.button("Score this transaction", type="primary",
+                     use_container_width=True):
+            from risklens.genai.narratives import band_risk
+
+            X = row[A["features"]]
+            prob = float(A["model"].predict_proba(X)[:, 1][0])
+            band = band_risk(prob)
+            decision = ("DECLINE" if prob >= max(A["threshold"], 0.90)
+                        else "REVIEW" if prob >= A["threshold"] else "APPROVE")
+            st.session_state["last_score"] = {
+                "X": X, "prob": prob, "band": band, "decision": decision,
+                "amount": float(row["TransactionAmt"].iloc[0]),
+                "actual": int(row["isFraud"].iloc[0]),
+                "context": {
+                    c: (None if pd.isna(row[c].iloc[0]) else row[c].iloc[0])
+                    for c in ("ProductCD", "card4", "card6", "DeviceType")
+                    if c in row.columns
+                },
+            }
+
+    # -------------------------------------------------------------------
+    # Mode A: hand-built transaction
+    # -------------------------------------------------------------------
+    if mode == "Build one by hand":
+        st.caption(
+            "You supply ~8 of 470 features, so the model stays uncertain and "
+            "everything lands on APPROVE. What is informative here is the "
+            "**relative** movement as you change one input at a time."
+        )
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            amount = st.number_input("Amount", min_value=0.01, value=425.50, step=10.0)
+            product = st.selectbox("Product code", ["W", "C", "H", "R", "S"], index=1)
+            card4 = st.selectbox("Card network",
+                                 ["visa", "mastercard", "american express",
+                                  "discover"], index=0)
+        with c2:
+            card6 = st.selectbox("Card type", ["credit", "debit"], index=0)
+            email = st.selectbox(
+                "Payer email domain",
+                ["gmail.com", "outlook.com", "hotmail.com", "yahoo.com",
+                 "anonymous.com"],
+                index=1,
+            )
+            device = st.selectbox("Device type",
+                                  ["(missing)", "desktop", "mobile"], index=2)
+        with c3:
+            hour = st.slider("Hour of day (relative)", 0, 23, 3)
+            dist1 = st.number_input("Billing distance", min_value=0.0, value=0.0,
+                                    step=10.0)
+            include_dist = st.checkbox("Include distance", value=False)
+
+        if st.button("Score", type="primary", use_container_width=True):
+            from risklens.api.app import STATE, TransactionIn, build_features
+
+            STATE.update({k: A[k] for k in
+                          ("model", "encoder", "features", "schema") if k in A})
+
+            payload = TransactionIn(
+                TransactionAmt=amount,
+                TransactionDT=hour * 3600 + 86_400,
+                ProductCD=product,
+                card4=card4,
+                card6=card6,
+                P_emaildomain=email,
+                DeviceType=None if device == "(missing)" else device,
+                dist1=dist1 if include_dist else None,
+            )
+            X = build_features(payload)
+            prob = float(A["model"].predict_proba(X)[:, 1][0])
+
+            from risklens.genai.narratives import band_risk
+
+            band = band_risk(prob)
+            decision = ("DECLINE" if prob >= max(A["threshold"], 0.90)
+                        else "REVIEW" if prob >= A["threshold"] else "APPROVE")
+
+            # persist across reruns so the "full investigation" button below
+            # can reuse this result without rescoring
+            st.session_state["last_score"] = {
+                "X": X, "prob": prob, "band": band, "decision": decision,
+                "amount": amount, "actual": None,
+                "context": {"ProductCD": product, "card4": card4, "card6": card6,
+                            "DeviceType": None if device == "(missing)" else device},
+            }
+
+    # ---- render whatever was last scored ---------------------------------
+    if "last_score" in st.session_state:
+        import numpy as np
+
+        from risklens.genai.narratives import (
+            BAND_ACTIONS, BAND_OWNER, build_narrative, humanise,
+        )
+        from risklens.models.explain import ReasonCode
+
+        S = st.session_state["last_score"]
+        X, prob, band, decision = S["X"], S["prob"], S["band"], S["decision"]
+
+        st.markdown("---")
+
+        # ---- the verdict -------------------------------------------------
+        DECISION_MEANING = {
+            "APPROVE": ("Let the transaction through", "#27ae60"),
+            "REVIEW": ("Hold and send to an analyst queue", "#e67e22"),
+            "DECLINE": ("Block, and contact the cardholder", "#c0392b"),
+        }
+        meaning, dcolour = DECISION_MEANING[decision]
+
+        m1, m2, m3 = st.columns([1, 1, 1])
+        m1.metric("Fraud probability", f"{prob:.2%}",
+                  f"{prob / 0.0347:.1f}× the 3.47% base rate")
+        m2.markdown(
+            f"<div style='padding:12px;border-radius:8px;text-align:center;"
+            f"background:{BAND_COLOR[band]};color:white;font-weight:700;"
+            f"font-size:20px'>{band}</div>"
+            f"<div style='text-align:center;font-size:12px;color:grey;"
+            f"padding-top:4px'>risk band</div>",
+            unsafe_allow_html=True,
+        )
+        m3.markdown(
+            f"<div style='padding:12px;border-radius:8px;text-align:center;"
+            f"background:{dcolour};color:white;font-weight:700;"
+            f"font-size:20px'>{decision}</div>"
+            f"<div style='text-align:center;font-size:12px;color:grey;"
+            f"padding-top:4px'>{meaning}</div>",
+            unsafe_allow_html=True,
+        )
+
+        # ---- why this is NOT a yes/no fraud verdict ----------------------
+        with st.expander(
+            'Why does this say "APPROVE" rather than "FRAUD" or "NOT FRAUD"?',
+            expanded=False,
+        ):
+            st.markdown(f"""
+**Because the model does not know whether this is fraud — it estimates a probability.**
+
+Turning `{prob:.1%}` into a yes/no answer requires a **threshold**, and choosing
+that threshold is a *business* decision, not a statistical one:
+
+- A **false negative** costs the transaction amount — we refund the customer.
+- A **false positive** costs about £15 in analyst time, plus customer goodwill.
+
+Those are **asymmetric**, and the false-negative cost **varies with the amount**.
+So RiskLens sweeps thresholds against that cost model and picks the one that
+loses the least money: **{A['threshold']:.4f}**.
+
+Saying *"THIS IS FRAUD"* would be a truth claim we cannot support. Saying
+*"{decision} — {meaning.lower()}"* is an **auditable decision** under a stated
+cost model, and a human can override it.
+
+**Ground truth arrives weeks later**, when a chargeback is filed — which is also
+why the training labels have a 120-day maturity lag.
+            """)
+
+        # ---- narrative + reason codes ------------------------------------
+        if "explainer" in A:
             sv = A["explainer"].shap_values(X)
             if sv.ndim > 1:
                 sv = sv[0]
             order = np.argsort(np.abs(sv))[::-1][:8]
-            rows = [
-                {
-                    "Factor": humanise(str(X.columns[i])),
-                    "Value": X.iloc[0, i],
-                    "Impact": float(sv[i]),
-                    "Direction": "↑ raises risk" if sv[i] > 0 else "↓ lowers risk",
-                }
+            reasons = [
+                ReasonCode(
+                    feature=str(X.columns[i]),
+                    value=X.iloc[0, i],
+                    shap_value=float(sv[i]),
+                    direction="increases risk" if sv[i] > 0 else "decreases risk",
+                )
                 for i in order
             ]
+
+            st.subheader("Assessment")
+            narrative = build_narrative(
+                transaction_id=0, probability=prob, amount=S["amount"],
+                reason_codes=reasons, context=S.get("context") or {},
+            )
+            st.info(narrative.text)
+
+            # When we scored a REAL row we know the outcome, so we can show
+            # whether the model was right. Never available in production -
+            # the label arrives weeks later with the chargeback.
+            if S.get("actual") is not None:
+                truth = "FRAUD" if S["actual"] == 1 else "legitimate"
+                flagged = prob >= A["threshold"]
+                correct = flagged == (S["actual"] == 1)
+                (st.success if correct else st.warning)(
+                    f"**Actual outcome: {truth}** — the model "
+                    f"{'was right' if correct else 'was WRONG'} at this threshold. "
+                    "In production this label would not exist yet; it arrives "
+                    "weeks later when a chargeback is filed."
+                )
+
             st.subheader("Why — reason codes")
             st.caption(
-                "From SHAP, so these are faithful to the model. They are not "
-                "an interpretation, and they sum exactly to the prediction."
+                "Computed with SHAP, so these are faithful to the model rather "
+                "than an interpretation of it. They sum exactly to the "
+                "prediction, so no contributing factor can be omitted."
             )
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            # `Value` deliberately holds mixed types - 'credit' alongside 3.14 -
+            # because a reason code can cite a categorical or a numeric feature.
+            # Streamlit serialises dataframes to Arrow, which needs one type per
+            # column, so an object column triggers a conversion warning. We
+            # render it through the same _fmt the narrative uses, which also
+            # keeps the table and the prose consistent ("not recorded", not NaN).
+            from risklens.genai.narratives import _fmt
+
+            rows = [
+                {
+                    "Factor": humanise(r.feature),
+                    "Value": _fmt(r.value),
+                    "Impact": round(r.shap_value, 4),
+                    "Direction": "↑ raises risk" if r.shap_value > 0
+                                 else "↓ lowers risk",
+                }
+                for r in reasons
+            ]
+            st.dataframe(pd.DataFrame(rows), use_container_width=True,
+                         hide_index=True)
+            st.caption(
+                'A value of "not recorded" is meaningful, not a gap: this '
+                "dataset showed fraud is roughly 4× higher when identity data "
+                "is present, because identity is only captured for "
+                "card-not-present transactions."
+            )
+
+            # ---- what policy requires (deterministic, not LLM) -----------
+            st.subheader("What policy requires")
+            pa, pb = st.columns([2, 1])
+            pa.success(f"**{BAND_ACTIONS[band].capitalize()}**")
+            pb.metric("Decision owner", BAND_OWNER[band])
+            st.caption(
+                "Read from a deterministic table, not inferred by a language "
+                "model. An earlier version let the LLM read the policy table "
+                "and it reported the CRITICAL action as the HIGH one — so the "
+                "band→action lookup is now code, not prose comprehension."
+            )
+
+            # ---- optional: full copilot investigation --------------------
+            st.markdown("---")
+            st.subheader("Full investigation (optional)")
+            st.caption(
+                "Runs the Stage 9 copilot: finds similar historical cases, "
+                "retrieves the relevant policy, and writes an analyst summary "
+                "with a local LLM. Takes 10–20 seconds."
+            )
+            if st.button("Run full investigation"):
+                if "cases" not in IDX or "rag" not in IDX:
+                    st.error("Indexes not built. Run `python scripts/run_genai.py`.")
+                else:
+                    with st.spinner("Searching precedent and policy..."):
+                        top = [humanise(r.feature) for r in reasons
+                               if r.shap_value > 0][:3]
+                        query = ("fraud alert driven by " + ", ".join(top)
+                                 if top else "high risk fraud alert")
+                        hits = IDX["cases"].search(query, k=3)
+
+                        st.markdown("**Similar historical cases**")
+                        for h in hits:
+                            label = ("🔴 confirmed fraud" if h.is_fraud == 1
+                                     else "🟢 not fraud" if h.is_fraud == 0
+                                     else "⚪ unlabelled")
+                            with st.expander(
+                                f"similarity {h.score:.3f} · {h.risk_band} · {label}"
+                            ):
+                                st.write(h.text)
+
+                    with st.spinner("Retrieving policy..."):
+                        ans = IDX["rag"].ask(
+                            f"What are the review requirements and evidence "
+                            f"standards for a {band} risk transaction?"
+                        )
+                        st.markdown("**Policy guidance**")
+                        st.write(ans.answer)
+                        st.caption("Sources: " + ", ".join(ans.sources))
 
 
 # =========================================================================

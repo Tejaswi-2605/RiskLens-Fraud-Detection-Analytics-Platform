@@ -1,0 +1,254 @@
+{
+  "calibration": {
+    "method": "sigmoid",
+    "brier_before": 0.057471,
+    "brier_after": 0.022325,
+    "improvement_pct": 61.15,
+    "ece_before": 0.13428,
+    "ece_after": 0.00813,
+    "max_prob_before": 0.9999,
+    "max_prob_after": 0.77352,
+    "n_calibration": 36548
+  },
+  "per_method": {
+    "isotonic": {
+      "brier": 0.021593249854307116,
+      "ece": 0.00786248965192719,
+      "distinct_values": 90,
+      "inversions": 0
+    },
+    "sigmoid": {
+      "brier": 0.02232518716230534,
+      "ece": 0.008134454658905804,
+      "distinct_values": 36490,
+      "inversions": 0
+    },
+    "_selection": {
+      "chosen": "sigmoid",
+      "reason": "isotonic beats Platt on Brier by only 3.3%, under the 10% margin. Platt is strictly monotonic so it preserves every distinct score and every achievable alert budget - the better trade here"
+    }
+  },
+  "reliability_before": [
+    {
+      "bin": 0,
+      "n": 3655,
+      "mean_predicted": 0.00872,
+      "observed_rate": 0.00274,
+      "gap": 0.00598
+    },
+    {
+      "bin": 1,
+      "n": 3655,
+      "mean_predicted": 0.02172,
+      "observed_rate": 0.00109,
+      "gap": 0.02063
+    },
+    {
+      "bin": 2,
+      "n": 3655,
+      "mean_predicted": 0.03676,
+      "observed_rate": 0.0041,
+      "gap": 0.03265
+    },
+    {
+      "bin": 3,
+      "n": 3654,
+      "mean_predicted": 0.05513,
+      "observed_rate": 0.00465,
+      "gap": 0.05048
+    },
+    {
+      "bin": 4,
+      "n": 3655,
+      "mean_predicted": 0.07816,
+      "observed_rate": 0.00575,
+      "gap": 0.07242
+    },
+    {
+      "bin": 5,
+      "n": 3655,
+      "mean_predicted": 0.10896,
+      "observed_rate": 0.00602,
+      "gap": 0.10294
+    },
+    {
+      "bin": 6,
+      "n": 3654,
+      "mean_predicted": 0.15086,
+      "observed_rate": 0.01232,
+      "gap": 0.13855
+    },
+    {
+      "bin": 7,
+      "n": 3655,
+      "mean_predicted": 0.21454,
+      "observed_rate": 0.02052,
+      "gap": 0.19402
+    },
+    {
+      "bin": 8,
+      "n": 3655,
+      "mean_predicted": 0.32986,
+      "observed_rate": 0.03694,
+      "gap": 0.29293
+    },
+    {
+      "bin": 9,
+      "n": 3655,
+      "mean_predicted": 0.65598,
+      "observed_rate": 0.2238,
+      "gap": 0.43218
+    }
+  ],
+  "reliability_after": [
+    {
+      "bin": 0,
+      "n": 3655,
+      "mean_predicted": 0.00396,
+      "observed_rate": 0.00274,
+      "gap": 0.00123
+    },
+    {
+      "bin": 1,
+      "n": 3655,
+      "mean_predicted": 0.00433,
+      "observed_rate": 0.00109,
+      "gap": 0.00323
+    },
+    {
+      "bin": 2,
+      "n": 3655,
+      "mean_predicted": 0.00479,
+      "observed_rate": 0.0041,
+      "gap": 0.00069
+    },
+    {
+      "bin": 3,
+      "n": 3654,
+      "mean_predicted": 0.00543,
+      "observed_rate": 0.00465,
+      "gap": 0.00078
+    },
+    {
+      "bin": 4,
+      "n": 3655,
+      "mean_predicted": 0.00635,
+      "observed_rate": 0.00575,
+      "gap": 0.00061
+    },
+    {
+      "bin": 5,
+      "n": 3655,
+      "mean_predicted": 0.00783,
+      "observed_rate": 0.00602,
+      "gap": 0.00181
+    },
+    {
+      "bin": 6,
+      "n": 3654,
+      "mean_predicted": 0.01042,
+      "observed_rate": 0.01232,
+      "gap": -0.0019
+    },
+    {
+      "bin": 7,
+      "n": 3655,
+      "mean_predicted": 0.01611,
+      "observed_rate": 0.02052,
+      "gap": -0.00441
+    },
+    {
+      "bin": 8,
+      "n": 3655,
+      "mean_predicted": 0.03603,
+      "observed_rate": 0.03694,
+      "gap": -0.00091
+    },
+    {
+      "bin": 9,
+      "n": 3655,
+      "mean_predicted": 0.2914,
+      "observed_rate": 0.2238,
+      "gap": 0.0676
+    }
+  ],
+  "ranking_preserved": {
+    "strict_inversions": 0,
+    "pr_auc_raw": 0.51498,
+    "pr_auc_calibrated": 0.51498,
+    "note": "PR-AUC can move under isotonic because of TIES, not reordering. Inversions is the correct test.",
+    "passed": true
+  },
+  "risk_engine_raw": {
+    "threshold": 0.512433,
+    "fraud_caught_value": 100528.32,
+    "recovered": 90475.48,
+    "unrecovered_on_caught": 10052.83,
+    "fraud_missed_value": 64452.08,
+    "false_positive_count": 1921,
+    "false_positive_cost": 28815.0,
+    "net_cost": 103319.91,
+    "tp": 758,
+    "fp": 1921,
+    "fn": 404,
+    "tn": 33465,
+    "precision": 0.2829,
+    "recall": 0.6523,
+    "f1": 0.3947,
+    "alert_rate": 0.0733
+  },
+  "risk_engine_calibrated": {
+    "threshold": 0.109662,
+    "fraud_caught_value": 100528.32,
+    "recovered": 90475.48,
+    "unrecovered_on_caught": 10052.83,
+    "fraud_missed_value": 64452.08,
+    "false_positive_count": 1921,
+    "false_positive_cost": 28815.0,
+    "net_cost": 103319.91,
+    "tp": 758,
+    "fp": 1921,
+    "fn": 404,
+    "tn": 33465,
+    "precision": 0.2829,
+    "recall": 0.6523,
+    "f1": 0.3947,
+    "alert_rate": 0.0733
+  },
+  "test": {
+    "metrics": {
+      "pr_auc": 0.467993,
+      "roc_auc": 0.888253,
+      "brier": 0.025644,
+      "n": 73910,
+      "n_positive": 2634,
+      "base_rate": 0.035638,
+      "pr_auc_lift": 13.131871
+    },
+    "threshold": 0.109662,
+    "confusion": {
+      "threshold": 0.109662,
+      "tp": 1579,
+      "fp": 3892,
+      "fn": 1055,
+      "tn": 67384,
+      "precision": 0.2886,
+      "recall": 0.5995,
+      "f1": 0.3896,
+      "alert_rate": 0.074
+    },
+    "cost": {
+      "threshold": 0.109662,
+      "fraud_caught_value": 241279.86,
+      "recovered": 217151.87,
+      "unrecovered_on_caught": 24127.99,
+      "fraud_missed_value": 154521.71,
+      "false_positive_count": 3892,
+      "false_positive_cost": 58380.0,
+      "net_cost": 237029.7
+    },
+    "do_nothing_cost": 395801.57,
+    "net_saving": 158771.87,
+    "pct_of_fraud_loss_avoided": 40.11
+  }
+}
