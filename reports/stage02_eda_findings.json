@@ -1,0 +1,524 @@
+{
+  "split": {
+    "boundaries": "train <= 11,093,711 | val [11,180,111, 13,452,421] | test >= 13,538,821 | embargo 1.0d",
+    "embargo_days": 1,
+    "rows_total": 590540,
+    "rows_assigned": 585131,
+    "rows_dropped_to_embargo": 5409,
+    "partitions": {
+      "train": {
+        "rows": 438125,
+        "share": 0.7419,
+        "fraud": 15364,
+        "fraud_rate": 0.03507,
+        "t_min": 86400,
+        "t_max": 11093269,
+        "span_days": 127.4
+      },
+      "val": {
+        "rows": 73096,
+        "share": 0.1238,
+        "fraud": 2536,
+        "fraud_rate": 0.03469,
+        "t_min": 11180801,
+        "t_max": 13452406,
+        "span_days": 26.3
+      },
+      "test": {
+        "rows": 73910,
+        "share": 0.1252,
+        "fraud": 2634,
+        "fraud_rate": 0.03564,
+        "t_min": 13538822,
+        "t_max": 15811131,
+        "span_days": 26.3
+      }
+    }
+  },
+  "missingness": {
+    "columns_total": 434,
+    "columns_fully_present": 95,
+    "columns_over_50pct_missing": 229,
+    "worst": [
+      {
+        "column": "id_24",
+        "dtype": "float32",
+        "pct_missing": 99.15,
+        "n_missing": 434407,
+        "n_unique": 10
+      },
+      {
+        "column": "id_07",
+        "dtype": "float32",
+        "pct_missing": 99.08,
+        "n_missing": 434078,
+        "n_unique": 82
+      },
+      {
+        "column": "id_08",
+        "dtype": "float32",
+        "pct_missing": 99.08,
+        "n_missing": 434078,
+        "n_unique": 93
+      },
+      {
+        "column": "id_21",
+        "dtype": "float32",
+        "pct_missing": 99.08,
+        "n_missing": 434073,
+        "n_unique": 433
+      },
+      {
+        "column": "id_25",
+        "dtype": "float32",
+        "pct_missing": 99.08,
+        "n_missing": 434093,
+        "n_unique": 311
+      }
+    ]
+  },
+  "v_blocks": {
+    "n_v_columns": 339,
+    "n_blocks": 14
+  },
+  "missing_as_signal": [
+    {
+      "column": "id_04",
+      "pct_missing": 88.34,
+      "fraud_rate_when_missing": 0.02609,
+      "fraud_rate_when_present": 0.10308,
+      "abs_gap": 0.07698,
+      "ratio": 0.253
+    },
+    {
+      "column": "id_03",
+      "pct_missing": 88.34,
+      "fraud_rate_when_missing": 0.02609,
+      "fraud_rate_when_present": 0.10308,
+      "abs_gap": 0.07698,
+      "ratio": 0.253
+    },
+    {
+      "column": "id_09",
+      "pct_missing": 86.69,
+      "fraud_rate_when_missing": 0.02507,
+      "fraud_rate_when_present": 0.10018,
+      "abs_gap": 0.07511,
+      "ratio": 0.25
+    },
+    {
+      "column": "id_10",
+      "pct_missing": 86.69,
+      "fraud_rate_when_missing": 0.02507,
+      "fraud_rate_when_present": 0.10018,
+      "abs_gap": 0.07511,
+      "ratio": 0.25
+    },
+    {
+      "column": "dist2",
+      "pct_missing": 93.15,
+      "fraud_rate_when_missing": 0.0307,
+      "fraud_rate_when_present": 0.0944,
+      "abs_gap": 0.06369,
+      "ratio": 0.325
+    },
+    {
+      "column": "id_13",
+      "pct_missing": 77.32,
+      "fraud_rate_when_missing": 0.02202,
+      "fraud_rate_when_present": 0.07957,
+      "abs_gap": 0.05756,
+      "ratio": 0.277
+    },
+    {
+      "column": "id_05",
+      "pct_missing": 75.21,
+      "fraud_rate_when_missing": 0.02145,
+      "fraud_rate_when_present": 0.07638,
+      "abs_gap": 0.05492,
+      "ratio": 0.281
+    },
+    {
+      "column": "id_06",
+      "pct_missing": 75.21,
+      "fraud_rate_when_missing": 0.02145,
+      "fraud_rate_when_present": 0.07638,
+      "abs_gap": 0.05492,
+      "ratio": 0.281
+    },
+    {
+      "column": "id_02",
+      "pct_missing": 74.53,
+      "fraud_rate_when_missing": 0.02115,
+      "fraud_rate_when_present": 0.0758,
+      "abs_gap": 0.05465,
+      "ratio": 0.279
+    },
+    {
+      "column": "DeviceType",
+      "pct_missing": 74.54,
+      "fraud_rate_when_missing": 0.02117,
+      "fraud_rate_when_present": 0.07577,
+      "abs_gap": 0.0546,
+      "ratio": 0.279
+    }
+  ],
+  "temporal": {
+    "weekly_fraud_rate_min": 0.02074,
+    "weekly_fraud_rate_max": 0.05072,
+    "swing_ratio": 2.45
+  },
+  "categoricals": {
+    "ProductCD": [
+      {
+        "ProductCD": "C",
+        "n": 52681,
+        "fraud": 5936,
+        "fraud_rate": 0.11267819517473093,
+        "lift": 3.213169373921439
+      },
+      {
+        "ProductCD": "S",
+        "n": 7543,
+        "fraud": 463,
+        "fraud_rate": 0.06138141323081002,
+        "lift": 1.7503730585621347
+      },
+      {
+        "ProductCD": "H",
+        "n": 28752,
+        "fraud": 1323,
+        "fraud_rate": 0.04601419031719533,
+        "lift": 1.3121561528717263
+      },
+      {
+        "ProductCD": "R",
+        "n": 30933,
+        "fraud": 1113,
+        "fraud_rate": 0.03598099117447386,
+        "lift": 1.026046066019029
+      },
+      {
+        "ProductCD": "W",
+        "n": 318216,
+        "fraud": 6529,
+        "fraud_rate": 0.02051751011891294,
+        "lift": 0.5850842307243381
+      }
+    ],
+    "card4": [
+      {
+        "card4": "discover",
+        "n": 4988,
+        "fraud": 321,
+        "fraud_rate": 0.06435445068163592,
+        "lift": 1.835153196100738
+      },
+      {
+        "card4": "mastercard",
+        "n": 139681,
+        "fraud": 4922,
+        "fraud_rate": 0.035237433867168766,
+        "lift": 1.0048425353458288
+      },
+      {
+        "card4": "visa",
+        "n": 285712,
+        "fraud": 9901,
+        "fraud_rate": 0.03465377723021784,
+        "lift": 0.9881987860576146
+      },
+      {
+        "card4": "american express",
+        "n": 6913,
+        "fraud": 194,
+        "fraud_rate": 0.028063069579053957,
+        "lift": 0.8002559463240702
+      }
+    ],
+    "card6": [
+      {
+        "card6": "credit",
+        "n": 114168,
+        "fraud": 7602,
+        "fraud_rate": 0.06658608366617616,
+        "lift": 1.8987911941059248
+      },
+      {
+        "card6": "debit",
+        "n": 323084,
+        "fraud": 7738,
+        "fraud_rate": 0.023950427752534944,
+        "lift": 0.6829784664852494
+      }
+    ],
+    "DeviceType": [
+      {
+        "DeviceType": "mobile",
+        "n": 43296,
+        "fraud": 4268,
+        "fraud_rate": 0.09857723577235772,
+        "lift": 2.8110616651109233
+      },
+      {
+        "DeviceType": "desktop",
+        "n": 68238,
+        "fraud": 4183,
+        "fraud_rate": 0.0613001553386676,
+        "lift": 1.7480558811347138
+      }
+    ],
+    "P_emaildomain": [
+      {
+        "P_emaildomain": "outlook.com",
+        "n": 3757,
+        "fraud": 347,
+        "fraud_rate": 0.09236092627096087,
+        "lift": 2.6337952891476655
+      },
+      {
+        "P_emaildomain": "hotmail.com",
+        "n": 34612,
+        "fraud": 1832,
+        "fraud_rate": 0.05292961978504565,
+        "lift": 1.5093588693258997
+      },
+      {
+        "P_emaildomain": "gmail.com",
+        "n": 169229,
+        "fraud": 7440,
+        "fraud_rate": 0.04396409598827624,
+        "lift": 1.2536949723290503
+      },
+      {
+        "P_emaildomain": "live.com",
+        "n": 2318,
+        "fraud": 79,
+        "fraud_rate": 0.034081104400345126,
+        "lift": 0.9718682547123931
+      },
+      {
+        "P_emaildomain": "icloud.com",
+        "n": 4641,
+        "fraud": 146,
+        "fraud_rate": 0.03145873734109028,
+        "lift": 0.8970879521976816
+      },
+      {
+        "P_emaildomain": "bellsouth.net",
+        "n": 1472,
+        "fraud": 43,
+        "fraud_rate": 0.029211956521739132,
+        "lift": 0.8330179934318508
+      },
+      {
+        "P_emaildomain": "live.com.mx",
+        "n": 580,
+        "fraud": 16,
+        "fraud_rate": 0.027586206896551724,
+        "lift": 0.7866575694188833
+      },
+      {
+        "P_emaildomain": "comcast.net",
+        "n": 6061,
+        "fraud": 146,
+        "fraud_rate": 0.024088434251773636,
+        "lift": 0.6869139063107474
+      }
+    ]
+  },
+  "stat_tests": [
+    {
+      "feature": "D15",
+      "test": "mann-whitney-u",
+      "statistic": 1640913658.0,
+      "p_value": 0.0,
+      "effect": "cliffs_delta",
+      "effect_size": -0.2403,
+      "n": 368233,
+      "interpretation": "small but real difference"
+    },
+    {
+      "feature": "C1",
+      "test": "mann-whitney-u",
+      "statistic": 4010967596.5,
+      "p_value": 0.0,
+      "effect": "cliffs_delta",
+      "effect_size": 0.235,
+      "n": 438125,
+      "interpretation": "small but real difference"
+    },
+    {
+      "feature": "C13",
+      "test": "mann-whitney-u",
+      "statistic": 2538365473.5,
+      "p_value": 0.0,
+      "effect": "cliffs_delta",
+      "effect_size": -0.2184,
+      "n": 438125,
+      "interpretation": "small but real difference"
+    },
+    {
+      "feature": "id_31",
+      "test": "chi-square",
+      "statistic": 14915.5227,
+      "p_value": 0.0,
+      "effect": "cramers_v",
+      "effect_size": 0.1845,
+      "n": 438125,
+      "interpretation": "weak but usable association"
+    },
+    {
+      "feature": "C14",
+      "test": "mann-whitney-u",
+      "statistic": 2679560974.5,
+      "p_value": 0.0,
+      "effect": "cliffs_delta",
+      "effect_size": -0.1749,
+      "n": 438125,
+      "interpretation": "small but real difference"
+    },
+    {
+      "feature": "D1",
+      "test": "mann-whitney-u",
+      "statistic": 2688675008.5,
+      "p_value": 0.0,
+      "effect": "cliffs_delta",
+      "effect_size": -0.1715,
+      "n": 437851,
+      "interpretation": "small but real difference"
+    },
+    {
+      "feature": "R_emaildomain",
+      "test": "chi-square",
+      "statistic": 12858.7545,
+      "p_value": 0.0,
+      "effect": "cramers_v",
+      "effect_size": 0.1713,
+      "n": 438125,
+      "interpretation": "weak but usable association"
+    },
+    {
+      "feature": "ProductCD",
+      "test": "chi-square",
+      "statistic": 11625.4601,
+      "p_value": 0.0,
+      "effect": "cramers_v",
+      "effect_size": 0.1629,
+      "n": 438125,
+      "interpretation": "weak but usable association"
+    },
+    {
+      "feature": "M4",
+      "test": "chi-square",
+      "statistic": 9323.3868,
+      "p_value": 0.0,
+      "effect": "cramers_v",
+      "effect_size": 0.1459,
+      "n": 438125,
+      "interpretation": "weak but usable association"
+    },
+    {
+      "feature": "DeviceType",
+      "test": "chi-square",
+      "statistic": 8413.5238,
+      "p_value": 0.0,
+      "effect": "cramers_v",
+      "effect_size": 0.1386,
+      "n": 438125,
+      "interpretation": "weak but usable association"
+    }
+  ],
+  "psi": [
+    {
+      "column": "dist2",
+      "psi": 0.057,
+      "verdict": "stable"
+    },
+    {
+      "column": "D15",
+      "psi": 0.0516,
+      "verdict": "stable"
+    },
+    {
+      "column": "C9",
+      "psi": 0.0477,
+      "verdict": "stable"
+    },
+    {
+      "column": "D1",
+      "psi": 0.0256,
+      "verdict": "stable"
+    },
+    {
+      "column": "C13",
+      "psi": 0.0198,
+      "verdict": "stable"
+    },
+    {
+      "column": "C2",
+      "psi": 0.0146,
+      "verdict": "stable"
+    },
+    {
+      "column": "C1",
+      "psi": 0.0112,
+      "verdict": "stable"
+    },
+    {
+      "column": "C1",
+      "psi": 0.0112,
+      "verdict": "stable"
+    },
+    {
+      "column": "C10",
+      "psi": 0.0092,
+      "verdict": "stable"
+    },
+    {
+      "column": "C8",
+      "psi": 0.0091,
+      "verdict": "stable"
+    },
+    {
+      "column": "C6",
+      "psi": 0.0082,
+      "verdict": "stable"
+    },
+    {
+      "column": "C14",
+      "psi": 0.0052,
+      "verdict": "stable"
+    },
+    {
+      "column": "C4",
+      "psi": 0.0044,
+      "verdict": "stable"
+    },
+    {
+      "column": "TransactionAmt",
+      "psi": 0.0039,
+      "verdict": "stable"
+    },
+    {
+      "column": "dist1",
+      "psi": 0.0033,
+      "verdict": "stable"
+    },
+    {
+      "column": "C5",
+      "psi": 0.0007,
+      "verdict": "stable"
+    },
+    {
+      "column": "C7",
+      "psi": 0.0007,
+      "verdict": "stable"
+    },
+    {
+      "column": "C3",
+      "psi": 0.0,
+      "verdict": "stable"
+    }
+  ]
+}
