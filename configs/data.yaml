@@ -49,3 +49,19 @@ expected:
   identity_rows: 144233
   approx_fraud_rate: 0.035
   fraud_rate_tolerance: 0.005
+
+# ---- Temporal split (Stage 3) --------------------------------------------
+# Defined BEFORE EDA on purpose. If we explored the whole dataset and then
+# chose features from what we saw, the analyst becomes the leak: feature
+# choices would encode knowledge of the test period. So the boundary is fixed
+# by a rule (time percentiles), not by looking at results.
+split:
+  method: temporal          # chronological, never random - fraud drifts
+  train_frac: 0.70          # earliest 70% of the time span
+  val_frac: 0.15            # next 15%
+  test_frac: 0.15           # most recent 15% - the honest holdout
+  # Rows inside the embargo window are DROPPED, not assigned. Fraud is bursty:
+  # one compromised card produces many transactions minutes apart. A hard
+  # boundary can put siblings of the same burst on both sides. The embargo
+  # is a buffer that makes that impossible.
+  embargo_days: 1

@@ -12,30 +12,30 @@ Written stage by stage as the project is built. This is the study document.
 
 ## Plan: 10 stages
 
-| # | Stage | Status | JD coverage |
-|---|-------|--------|-------------|
-| 0 | Project setup & reproducibility | ✅ Done | Git, venv, packaging |
-| 1 | Data ingestion | ✅ Done | Python, pandas, data engineering |
-| 2 | EDA + data quality + statistics | ⬜ | EDA, stats, SQL, visualisation |
-| 3 | Features + leakage-safe temporal split | ⬜ | Feature engineering, preprocessing |
-| 4 | Supervised modelling | ⬜ | Classification, imbalance handling |
-| 5 | Evaluation + calibration + risk engine | ⬜ | ROC/AUC, F1, CV, A/B testing, regression |
-| 6 | Unsupervised + deep learning | ⬜ | Clustering, anomaly detection, PyTorch |
-| 7 | Explainability | ⬜ | SHAP |
-| 8 | NLP + semantic search + RAG | ⬜ | NLP, semantic search, RAG |
-| 9 | Agentic investigation copilot | ⬜ | Agentic AI, prompt engineering |
-| 10 | Scale + ship | ⬜ | PySpark, FastAPI, Streamlit, Docker |
+| #  | Stage                                  | Status  | JD coverage                              |
+| -- | -------------------------------------- | ------- | ---------------------------------------- |
+| 0  | Project setup & reproducibility        | ✅ Done | Git, venv, packaging                     |
+| 1  | Data ingestion                         | ✅ Done | Python, pandas, data engineering         |
+| 2  | EDA + data quality + statistics        | ⬜      | EDA, stats, SQL, visualisation           |
+| 3  | Features + leakage-safe temporal split | ⬜      | Feature engineering, preprocessing       |
+| 4  | Supervised modelling                   | ⬜      | Classification, imbalance handling       |
+| 5  | Evaluation + calibration + risk engine | ⬜      | ROC/AUC, F1, CV, A/B testing, regression |
+| 6  | Unsupervised + deep learning           | ⬜      | Clustering, anomaly detection, PyTorch   |
+| 7  | Explainability                         | ⬜      | SHAP                                     |
+| 8  | NLP + semantic search + RAG            | ⬜      | NLP, semantic search, RAG                |
+| 9  | Agentic investigation copilot          | ⬜      | Agentic AI, prompt engineering           |
+| 10 | Scale + ship                           | ⬜      | PySpark, FastAPI, Streamlit, Docker      |
 
 **Time-box:** built in one day as a working vertical slice. Depth and study happen afterwards using this log.
 
 ### Deliberate cuts (state these honestly, don't hide them)
 
-| Cut | Why | What I'd do with more time |
-|---|---|---|
-| Temporal subsample for model iteration | Full 590k × 434 fits are minutes per run | Fit final model on full data |
-| No hyperparameter search | Hours of compute for a few points of PR-AUC | Optuna / randomised search with time-series CV |
-| PySpark = demonstration script | Data fits in memory; Spark isn't needed here | Full port with partitioned Parquet |
-| Small local LLM (`llama3.2:3b`) | Zero cost, runs offline, RAM-constrained machine | A frontier model for better tool-calling |
+| Cut                                    | Why                                              | What I'd do with more time                     |
+| -------------------------------------- | ------------------------------------------------ | ---------------------------------------------- |
+| Temporal subsample for model iteration | Full 590k × 434 fits are minutes per run        | Fit final model on full data                   |
+| No hyperparameter search               | Hours of compute for a few points of PR-AUC      | Optuna / randomised search with time-series CV |
+| PySpark = demonstration script         | Data fits in memory; Spark isn't needed here     | Full port with partitioned Parquet             |
+| Small local LLM (`llama3.2:3b`)      | Zero cost, runs offline, RAM-constrained machine | A frontier model for better tool-calling       |
 
 ---
 
@@ -45,13 +45,13 @@ Written stage by stage as the project is built. This is the study document.
 
 A `src/`-layout Python package with pinned dependencies, config-driven paths, and git hygiene.
 
-| File | Purpose |
-|---|---|
-| `pyproject.toml` | Declares the `risklens` package; enables `pip install -e .` so `import risklens` works from scripts, notebooks, tests and Docker identically |
-| `requirements.txt` | Pinned versions, grouped by stage |
-| `.gitignore` | Excludes data, secrets, venv, build artefacts |
-| `src/risklens/config.py` | Finds project root; loads `configs/data.yaml` into a typed object |
-| `configs/data.yaml` | Single source of truth for paths, schema and the data contract |
+| File                       | Purpose                                                                                                                                           |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pyproject.toml`         | Declares the`risklens` package; enables `pip install -e .` so `import risklens` works from scripts, notebooks, tests and Docker identically |
+| `requirements.txt`       | Pinned versions, grouped by stage                                                                                                                 |
+| `.gitignore`             | Excludes data, secrets, venv, build artefacts                                                                                                     |
+| `src/risklens/config.py` | Finds project root; loads`configs/data.yaml` into a typed object                                                                                |
+| `configs/data.yaml`      | Single source of truth for paths, schema and the data contract                                                                                    |
 
 ## Why
 
@@ -99,25 +99,25 @@ data/raw/train_transaction.csv  ─┐
 data/raw/train_identity.csv     ─┘                  reports/stage01_ingest_manifest.json
 ```
 
-| File | Purpose |
-|---|---|
-| `src/risklens/data/dtypes.py` | Memory-efficient dtype planning, column normalisation, categorical conversion |
-| `src/risklens/data/validate.py` | Seven data-contract assertions, each mapped to a named failure mode |
-| `src/risklens/data/ingest.py` | The 8-step pipeline, the `IngestManifest`, and `load_joined()` |
-| `scripts/download_data.py` | Kaggle fetch; degrades to printed instructions if no credentials |
-| `scripts/run_ingest.py` | CLI entry point with `--dry-run` |
-| `tests/test_ingest.py` | 12 tests on synthetic fixtures — run without the dataset |
+| File                              | Purpose                                                                       |
+| --------------------------------- | ----------------------------------------------------------------------------- |
+| `src/risklens/data/dtypes.py`   | Memory-efficient dtype planning, column normalisation, categorical conversion |
+| `src/risklens/data/validate.py` | Seven data-contract assertions, each mapped to a named failure mode           |
+| `src/risklens/data/ingest.py`   | The 8-step pipeline, the`IngestManifest`, and `load_joined()`             |
+| `scripts/download_data.py`      | Kaggle fetch; degrades to printed instructions if no credentials              |
+| `scripts/run_ingest.py`         | CLI entry point with`--dry-run`                                             |
+| `tests/test_ingest.py`          | 12 tests on synthetic fixtures — run without the dataset                     |
 
 ## Purpose
 
 Produce **one trustworthy table** every later stage can rely on, and make four specific failures impossible:
 
-| Failure | Consequence if unguarded |
-|---|---|
-| Join fan-out | Every downstream count, rate and metric silently wrong |
-| Memory blow-up | Cannot load the data; or swaps, and every experiment takes 40 min |
-| Schema drift (`id-01` vs `id_01`) | Trains fine, crashes in the API at serving time |
-| Premature transformation | **Data leakage** — inflated offline metrics, production failure |
+| Failure                               | Consequence if unguarded                                               |
+| ------------------------------------- | ---------------------------------------------------------------------- |
+| Join fan-out                          | Every downstream count, rate and metric silently wrong                 |
+| Memory blow-up                        | Cannot load the data; or swaps, and every experiment takes 40 min      |
+| Schema drift (`id-01` vs `id_01`) | Trains fine, crashes in the API at serving time                        |
+| Premature transformation              | **Data leakage** — inflated offline metrics, production failure |
 
 ## How it works — the 8 steps
 
@@ -163,12 +163,12 @@ Rejected: `read_csv()` then `.astype('float32')` — needs **both** copies in me
 
 ### Decision 3 — Parquet, not CSV / Feather / HDF5
 
-| Format | Rejected because |
-|---|---|
-| CSV | Re-parses text every load (~60s), stores no dtypes |
-| Feather | Fast but not intended as a durable format |
-| HDF5 | Capable but fragile tooling |
-| **Parquet** ✅ | Columnar, compressed, typed, and **read natively by Spark** — makes Stage 10's PySpark port a port, not a rewrite |
+| Format               | Rejected because                                                                                                        |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| CSV                  | Re-parses text every load (~60s), stores no dtypes                                                                      |
+| Feather              | Fast but not intended as a durable format                                                                               |
+| HDF5                 | Capable but fragile tooling                                                                                             |
+| **Parquet** ✅ | Columnar, compressed, typed, and**read natively by Spark** — makes Stage 10's PySpark port a port, not a rewrite |
 
 ### Decision 4 — ingestion does no imputation, encoding, scaling, or column-dropping
 
@@ -180,27 +180,27 @@ Reshaping (join, type, sort, rename) is deterministic per-row and carries no cro
 
 ## The data contract — 7 checks, each for a named failure
 
-| Check | Catches |
-|---|---|
-| `check_required_columns` | Source schema changed (renamed/dropped column) |
-| `check_unique_key` | Non-unique key → the precondition for a safe join |
-| `check_no_row_multiplication` | Join fan-out — output rows ≠ input rows |
-| `check_target` | Null labels, or values outside {0,1} |
-| `check_time_column` | Nulls or negatives in the time column → breaks the temporal split |
-| `check_fraud_rate` | Truncated download or wrong file — the class balance drifts |
-| orphan-key check | Mismatched file pair (train identity + test transactions) |
+| Check                           | Catches                                                            |
+| ------------------------------- | ------------------------------------------------------------------ |
+| `check_required_columns`      | Source schema changed (renamed/dropped column)                     |
+| `check_unique_key`            | Non-unique key → the precondition for a safe join                 |
+| `check_no_row_multiplication` | Join fan-out — output rows ≠ input rows                          |
+| `check_target`                | Null labels, or values outside {0,1}                               |
+| `check_time_column`           | Nulls or negatives in the time column → breaks the temporal split |
+| `check_fraud_rate`            | Truncated download or wrong file — the class balance drifts       |
+| orphan-key check                | Mismatched file pair (train identity + test transactions)          |
 
 **Why crash instead of warn?** A pipeline that crashes is annoying. A pipeline that silently produces subtly wrong data is *dangerous* — it produces a plausible model that makes bad risk decisions.
 
 ## Data leakage risks identified at this stage
 
-| Risk | Control |
-|---|---|
-| Fitting a transform on all data (`fillna(df.mean())`, `StandardScaler().fit(df)`) | Ingestion performs no fitted transforms at all |
-| Treating `TransactionDT` as an ordinary integer → shuffled split | Sorted by time here; Stage 3 splits chronologically |
-| Bursty fraud → near-duplicate siblings across a shuffled split | Temporal split, not random |
-| Using Kaggle's `test_*.csv` | Unlabelled — unusable. We hold out the last time period of the labelled data instead |
-| Joining a table built with future knowledge | Identity is captured at transaction time — checked, not assumed |
+| Risk                                                                                  | Control                                                                               |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Fitting a transform on all data (`fillna(df.mean())`, `StandardScaler().fit(df)`) | Ingestion performs no fitted transforms at all                                        |
+| Treating`TransactionDT` as an ordinary integer → shuffled split                    | Sorted by time here; Stage 3 splits chronologically                                   |
+| Bursty fraud → near-duplicate siblings across a shuffled split                       | Temporal split, not random                                                            |
+| Using Kaggle's`test_*.csv`                                                          | Unlabelled — unusable. We hold out the last time period of the labelled data instead |
+| Joining a table built with future knowledge                                           | Identity is captured at transaction time — checked, not assumed                      |
 
 ### Dataset-specific trap: label lag
 
@@ -218,30 +218,61 @@ Per Vesta's data description, `isFraud` is defined by a **reported chargeback**,
 
 Synthetic fixtures deliberately reproduce every real failure mode: 200 rows at exactly 3.5% fraud, 25% identity coverage, unsorted timestamps, hyphenated `id-01`, injected NaNs.
 
-| Test | Verifies |
-|---|---|
-| `test_hyphenated_columns_are_normalised` | `id-01` → `id_01` |
-| `test_dtype_plan_downcasts_features_but_not_money` | float32 for V/card; key/target/time/amount exempt |
-| `test_low_cardinality_objects_become_category` | 2-distinct → category; 100-distinct → left as object |
-| `test_duplicate_join_key_is_rejected` | Contract error on duplicate key |
-| `test_row_multiplication_is_rejected` | Contract error on fan-out |
-| `test_missing_label_is_rejected` | Null label rejected, not coerced to 0 |
-| `test_unexpected_label_value_is_rejected` | A stray `2` rejected |
-| `test_fanout_join_raises` | Non-unique right key fails loudly |
-| `test_ingest_end_to_end` | Row count, dtypes, NaN preservation, time order, artefacts |
-| `test_ingest_is_deterministic` | Two runs → identical frames |
-| `test_load_joined_roundtrips` | Parquet round-trip preserves shape and labels |
-| `test_missing_raw_file_gives_actionable_error` | Error names the fix |
+| Test                                                 | Verifies                                                   |
+| ---------------------------------------------------- | ---------------------------------------------------------- |
+| `test_hyphenated_columns_are_normalised`           | `id-01` → `id_01`                                     |
+| `test_dtype_plan_downcasts_features_but_not_money` | float32 for V/card; key/target/time/amount exempt          |
+| `test_low_cardinality_objects_become_category`     | 2-distinct → category; 100-distinct → left as object     |
+| `test_duplicate_join_key_is_rejected`              | Contract error on duplicate key                            |
+| `test_row_multiplication_is_rejected`              | Contract error on fan-out                                  |
+| `test_missing_label_is_rejected`                   | Null label rejected, not coerced to 0                      |
+| `test_unexpected_label_value_is_rejected`          | A stray`2` rejected                                      |
+| `test_fanout_join_raises`                          | Non-unique right key fails loudly                          |
+| `test_ingest_end_to_end`                           | Row count, dtypes, NaN preservation, time order, artefacts |
+| `test_ingest_is_deterministic`                     | Two runs → identical frames                               |
+| `test_load_joined_roundtrips`                      | Parquet round-trip preserves shape and labels              |
+| `test_missing_raw_file_gives_actionable_error`     | Error names the fix                                        |
 
 **Why synthetic, not real data?** Speed (16s vs a 1.3 GB download), CI (must run without Kaggle credentials), and precision of intent (you can't reliably *provoke* a duplicated key or a fan-out with real data). The real data is exercised once by `run_ingest.py`, which re-applies the identical checks.
 
-## Results
+## Results — REAL RUN, full dataset
 
-| Item | Status |
-|---|---|
-| Test suite | ✅ **12 passed in 15.82s** (Python 3.11.9, pytest 8.3.4, win32) |
-| `download_data.py` credential fallback | ✅ Verified — prints instructions, no stack trace |
-| Full ingestion on real data | ⬜ **Not yet run** — dataset not downloaded. No numbers claimed. |
+Executed `scripts/run_ingest.py` on the real 678 MB dataset. Every contract
+check passed and every design prediction was confirmed.
+
+| Metric | Result | Interpretation |
+| --- | --- | --- |
+| transaction | 590,540 x 394 | as published |
+| identity | 144,233 x 41 | as published |
+| **joined** | **590,540 x 434** | 394 + 41 - 1 shared key. **Row count unchanged - no fan-out** |
+| **fraud** | **20,663 (3.499%)** | matches the published ~3.5%; contract check passed |
+| **imbalance** | **1 fraud per 27.6 legitimate** | the number that justifies PR-AUC over accuracy |
+| **identity coverage** | **24.42%** | an INNER join would have destroyed 75.6% of the data |
+| time span | 86,400 - 15,811,131 sec = **182.0 days** | the budget for the temporal split |
+| **memory** | **927.8 MB** | vs ~1.9 GB as float64 - dtype planning halved it |
+| **disk** | 678 MB CSV -> **76.7 MB** Parquet | **8.8x smaller** (columnar + snappy) |
+| **reload** | 25.5s CSV -> **0.63s** Parquet | **40x faster** for every later stage |
+| timings | load 25.5s, join 0.41s, write 5.5s | the join is essentially free once types are right |
+
+### Final dtype spread — proof the money exemption worked
+
+```
+float32   399    anonymised V/C/D features + identity numerics
+category   32    low-cardinality strings (ProductCD, card4, DeviceType, ...)
+int32       2    TransactionID, TransactionDT
+int8        1    isFraud
+float64     1    TransactionAmt   <-- deliberately NOT downcast
+```
+
+That single `float64` is the whole argument: everything else was halved for
+memory, money was not.
+
+### Numbers to quote in an interview
+
+- *"590,540 transactions, 434 features after the join, 3.5% fraud - about 1 in 28."*
+- *"24% identity coverage, which is exactly why I used a LEFT join. An INNER would have thrown away three quarters of the data and biased the population."*
+- *"Dtype planning took the in-memory footprint from ~1.9 GB to 928 MB, and Parquet took it from 678 MB on disk to 77 MB with a 40x faster reload."*
+- *"Zero rows were gained or lost in the join - the row-count assertion confirms it rather than me hoping."*
 
 ## How to run
 
@@ -284,10 +315,10 @@ Synthetic fixtures deliberately reproduce every real failure mode: 200 rows at e
 
 ## Git history
 
-| Commit | Content |
-|---|---|
-| `e019e58` | Stage 1: leakage-safe data ingestion pipeline |
-| `e74532f` | Fix `.gitignore` anchoring; track `src/risklens/data` |
+| Commit      | Content                                                  |
+| ----------- | -------------------------------------------------------- |
+| `e019e58` | Stage 1: leakage-safe data ingestion pipeline            |
+| `e74532f` | Fix`.gitignore` anchoring; track `src/risklens/data` |
 
 ---
 

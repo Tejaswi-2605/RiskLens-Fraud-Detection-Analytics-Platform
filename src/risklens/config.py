@@ -105,6 +105,11 @@ class DataConfig:
     def expected(self) -> dict[str, Any]:
         return self.raw["expected"]
 
+    # -- temporal split (Stage 3) --
+    @property
+    def split(self) -> dict[str, Any]:
+        return self.raw["split"]
+
 
 @lru_cache(maxsize=1)
 def load_data_config(path: str | Path | None = None) -> DataConfig:

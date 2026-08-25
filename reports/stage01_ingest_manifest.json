@@ -1,0 +1,61 @@
+{
+  "created_utc": "2026-08-25T03:28:08Z",
+  "python": "3.11.9",
+  "pandas": "2.2.3",
+  "numpy": "2.1.3",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "sources": {
+    "transaction": {
+      "path": "data/raw/train_transaction.csv",
+      "bytes": 683351067,
+      "sha256": "3a5c83ab6b3cc13dcabe5ffa9f522307fd5f7f7b6e6f6a60c32284ca6283d642"
+    },
+    "identity": {
+      "path": "data/raw/train_identity.csv",
+      "bytes": 26529680,
+      "sha256": "b63c725d8377be90a995268d97f347c17d456b95db45807adcf9f59cd603c37c"
+    }
+  },
+  "shapes": {
+    "transaction": [
+      590540,
+      394
+    ],
+    "identity": [
+      144233,
+      41
+    ],
+    "joined": [
+      590540,
+      434
+    ]
+  },
+  "target": {
+    "column": "isFraud",
+    "positives": 20663,
+    "negatives": 569877,
+    "fraud_rate": 0.03499000914417313,
+    "imbalance_ratio": 27.58
+  },
+  "time": {
+    "column": "TransactionDT",
+    "min": 86400,
+    "max": 15811131,
+    "span_days": 182.0
+  },
+  "join": {
+    "type": "left",
+    "key": "TransactionID",
+    "identity_rows_matched": 144233,
+    "identity_coverage": 0.2442
+  },
+  "memory": {
+    "joined_mb": 927.8,
+    "parquet_mb": 76.7
+  },
+  "timings_sec": {
+    "load": 25.47,
+    "join": 0.41,
+    "write_parquet": 5.45
+  }
+}
