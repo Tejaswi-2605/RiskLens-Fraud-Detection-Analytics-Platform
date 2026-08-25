@@ -172,7 +172,7 @@ app/streamlit_app.py     analyst console
 scripts/                 CLI entry points, in dependency order
 tests/                   62 tests, synthetic fixtures, no dataset required
 configs/data.yaml        paths, schema, data contract, split policy
-corpus/policies/         fraud-operations policy documents (not included - see below)
+corpus/policies/         synthetic fraud-operations policy documents (see note)
 notebooks/               generated and executed; outputs embedded
 reports/                 result artefacts — see below
 ```
@@ -224,12 +224,23 @@ results stay traceable.
 stores every version of a binary in full, so committing them would bloat
 history permanently for no benefit.
 
-**The policy corpus** (`corpus/policies/`). Stages 8 and 9 - policy retrieval
-and the investigation copilot - read plain-text policy documents from this
-folder and index them for retrieval. Any set of markdown files works; the
-system expects documents describing decision thresholds, escalation paths,
-review requirements and model-governance rules. Without them the earlier
-stages run normally and `run_genai.py` stops at the retrieval step.
+## The policy corpus is synthetic
+
+`corpus/policies/` contains six documents describing risk bands, card-not-present
+controls, chargeback handling, account-takeover response, alert triage and model
+governance. **They were written for this project.** They are not real policies
+from any institution, and each file says so in its header.
+
+They exist because retrieval needs a corpus and the IEEE-CIS dataset contains no
+free text. Writing them rather than indexing real regulatory material was a
+deliberate trade: external guidance would not reference this system's own risk
+bands or thresholds, so the copilot would retrieve policy that did not describe
+the system it was advising on.
+
+The trade-off is worth stating: retrieving from documents written for the same
+project is a weaker demonstration than indexing genuine regulatory text. The
+loader reads any markdown files in that folder, so real documents can be dropped
+in without code changes.
 
 ## Running it
 
