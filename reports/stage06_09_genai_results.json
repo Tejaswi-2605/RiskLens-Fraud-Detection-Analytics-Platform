@@ -19,7 +19,7 @@
         "verdict": "well grounded",
         "method": "lexical overlap heuristic, not an LLM judge"
       },
-      "latency_s": 14.6
+      "latency_s": 11.6
     },
     {
       "question": "How should decision thresholds be set, and why is maximising F1 not appropriate?",
@@ -40,11 +40,11 @@
         "verdict": "well grounded",
         "method": "lexical overlap heuristic, not an LLM judge"
       },
-      "latency_s": 1.1
+      "latency_s": 1.2
     },
     {
       "question": "What is the label maturity window and why does it matter for training data?",
-      "answer": "The label maturity window is 120 days. According to [03_chargebacks_and_labels.md], \"Transactions more recent than this must be treated as having immature labels.\"\n\nThis matters for training data because, as stated in [03_chargebacks_and_labels.md], \"Training data must exclude the most recent one hundred and twenty days, because negatives in that period include fraud that has not yet been reported.\"",
+      "answer": "According to [03_chargebacks_and_labels.md], the label maturity window is 120 days. This matters for training data because, as stated in the policy, \"Training data must exclude the most recent one hundred and twenty days, because negatives in that period include fraud that has not yet been reported.\"",
       "sources": [
         "03_chargebacks_and_labels.md",
         "06_model_governance.md"
@@ -52,7 +52,7 @@
       "chunks_used": 4,
       "model": "llama3.2:3b",
       "groundedness": {
-        "grounded_ratio": 0.919,
+        "grounded_ratio": 0.893,
         "unsupported_terms": [
           "according",
           "matters",
@@ -61,11 +61,11 @@
         "verdict": "well grounded",
         "method": "lexical overlap heuristic, not an LLM judge"
       },
-      "latency_s": 1.8
+      "latency_s": 1.5
     },
     {
       "question": "What are the primary indicators of account takeover?",
-      "answer": "According to [04_account_takeover.md], the primary indicators of account takeover are:\n\n1. A change to the registered email address, followed by transaction activity within a short window.\n2. A mismatch between the payer email domain and the recipient email domain where these previously matched.\n3. A new device or browser fingerprint transacting on an established account.\n4. A change in the billing address shortly before a high-value transaction.\n5. Transaction timing that departs materially from the established daily pattern for that account.\n6. A sudden increase in transaction velocity on a previously stable account.",
+      "answer": "According to the policy context, the primary indicators of account takeover are:\n\n* A change to the registered email address, followed by transaction activity within a short window. [04_account_takeover.md]\n* A mismatch between the payer email domain and the recipient email domain where these previously matched. [04_account_takeover.md]\n* A new device or browser fingerprint transacting on an established account. [04_account_takeover.md]\n* A change in the billing address shortly before a high-value transaction. [04_account_takeover.md]\n* Transaction timing that departs materially from the established daily pattern for that account. [04_account_takeover.md]\n* A sudden increase in transaction velocity on a previously stable account. [04_account_takeover.md]",
       "sources": [
         "04_account_takeover.md",
         "README.md"
@@ -73,14 +73,15 @@
       "chunks_used": 4,
       "model": "llama3.2:3b",
       "groundedness": {
-        "grounded_ratio": 0.982,
+        "grounded_ratio": 0.971,
         "unsupported_terms": [
-          "according"
+          "according",
+          "context"
         ],
         "verdict": "well grounded",
         "method": "lexical overlap heuristic, not an LLM judge"
       },
-      "latency_s": 2.5
+      "latency_s": 3.6
     },
     {
       "question": "What is the capital of France?",
@@ -102,7 +103,7 @@
     }
   ],
   "investigation": {
-    "transaction_id": 3478001,
+    "transaction_id": 3481073,
     "tools_called": [
       "get_transaction",
       "score_transaction",
@@ -115,32 +116,32 @@
       {
         "tool": "get_transaction",
         "arguments": {
-          "transaction_id": 3478001
+          "transaction_id": 3481073
         },
         "ok": true,
         "error": null,
         "output": {
-          "transaction_id": 3478001,
-          "TransactionAmt": 150.0,
-          "ProductCD": "H",
-          "card4": "visa",
-          "card6": "debit",
-          "DeviceType": "mobile",
-          "P_emaildomain": "yahoo.com",
+          "transaction_id": 3481073,
+          "TransactionAmt": 44.266,
+          "ProductCD": "C",
+          "card4": "mastercard",
+          "card6": "credit",
+          "DeviceType": "desktop",
+          "P_emaildomain": "gmail.com",
           "hour": 3,
           "is_night": 1,
-          "n_missing": 127
+          "n_missing": 111
         }
       },
       {
         "tool": "score_transaction",
         "arguments": {
-          "transaction_id": 3478001
+          "transaction_id": 3481073
         },
         "ok": true,
         "error": null,
         "output": {
-          "transaction_id": 3478001,
+          "transaction_id": 3481073,
           "fraud_probability": 0.9999,
           "risk_band": "CRITICAL"
         }
@@ -148,53 +149,53 @@
       {
         "tool": "explain_alert",
         "arguments": {
-          "transaction_id": 3478001
+          "transaction_id": 3481073
         },
         "ok": true,
         "error": null,
         "output": {
-          "transaction_id": 3478001,
+          "transaction_id": 3481073,
           "drivers": [
-            {
-              "factor": "DeviceInfo",
-              "raw_feature": "DeviceInfo",
-              "value": "VS425PP Build/LMY47V",
-              "impact": 1.706,
-              "direction": "increases risk"
-            },
             {
               "factor": "a count of related addresses",
               "raw_feature": "C1",
-              "value": 7.0,
-              "impact": 0.7729,
-              "direction": "increases risk"
-            },
-            {
-              "factor": "id_33",
-              "raw_feature": "id_33",
-              "value": "855x480",
-              "impact": 0.7061,
+              "value": 341.0,
+              "impact": 1.2498,
               "direction": "increases risk"
             },
             {
               "factor": "anonymised behavioural signal V258",
               "raw_feature": "V258",
-              "value": 2.0,
-              "impact": 0.7012,
+              "value": 11.0,
+              "impact": 1.0517,
               "direction": "increases risk"
             },
             {
-              "factor": "a count of related payment activity",
-              "raw_feature": "C13",
-              "value": 0.0,
-              "impact": 0.6355,
+              "factor": "id_09",
+              "raw_feature": "id_09",
+              "value": 4.0,
+              "impact": 0.8339,
               "direction": "increases risk"
             },
             {
-              "factor": "a count of distinct related entities",
-              "raw_feature": "C14",
-              "value": 0.0,
-              "impact": 0.5367,
+              "factor": "anonymised behavioural signal V45",
+              "raw_feature": "V45",
+              "value": 9.0,
+              "impact": 0.5365,
+              "direction": "increases risk"
+            },
+            {
+              "factor": "C11",
+              "raw_feature": "C11",
+              "value": 145.0,
+              "impact": 0.5271,
+              "direction": "increases risk"
+            },
+            {
+              "factor": "anonymised behavioural signal V87",
+              "raw_feature": "V87",
+              "value": 8.0,
+              "impact": 0.522,
               "direction": "increases risk"
             }
           ]
@@ -203,34 +204,34 @@
       {
         "tool": "find_similar_cases",
         "arguments": {
-          "query": "fraud alert driven by DeviceInfo, a count of related addresses, id_33",
+          "query": "fraud alert driven by a count of related addresses, anonymised behavioural signal V258, id_09",
           "k": 3
         },
         "ok": true,
         "error": null,
         "output": {
-          "query": "fraud alert driven by DeviceInfo, a count of related addresses, id_33",
+          "query": "fraud alert driven by a count of related addresses, anonymised behavioural signal V258, id_09",
           "matches": [
             {
-              "transaction_id": 3453905,
-              "similarity": 0.679,
-              "risk_band": "HIGH",
-              "confirmed_fraud": 1,
-              "summary": "ALERT 3453905 | risk HIGH (87.6%) | amount 42.91 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of anonymised behavioural signal V258 = 3, a count of distinct related entities = 0 and the recipient email domain = gm"
-            },
-            {
-              "transaction_id": 3459563,
-              "similarity": 0.669,
-              "risk_band": "HIGH",
-              "confirmed_fraud": 0,
-              "summary": "ALERT 3459563 | risk HIGH (86.9%) | amount 12.23 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of anonymised behavioural signal V258 = 2 and DeviceInfo = SM-J700M Build/MMB29K. Reducing the score: the browser = chr"
-            },
-            {
-              "transaction_id": 3479722,
-              "similarity": 0.666,
+              "transaction_id": 3481069,
+              "similarity": 0.66,
               "risk_band": "CRITICAL",
               "confirmed_fraud": 1,
-              "summary": "ALERT 3479722 | risk CRITICAL (99.9%) | amount 44.63 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 336, anonymised behavioural signal V258 = 5, id_09 = 4 and id_03 = 4. Rec"
+              "summary": "ALERT 3481069 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 338, anonymised behavioural signal V258 = 8, id_09 = 4 and anonymised behaviou"
+            },
+            {
+              "transaction_id": 3481067,
+              "similarity": 0.659,
+              "risk_band": "CRITICAL",
+              "confirmed_fraud": 1,
+              "summary": "ALERT 3481067 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 338, anonymised behavioural signal V258 = 8, id_09 = 4 and anonymised behaviou"
+            },
+            {
+              "transaction_id": 3442103,
+              "similarity": 0.655,
+              "risk_band": "CRITICAL",
+              "confirmed_fraud": 1,
+              "summary": "ALERT 3442103 | risk CRITICAL (99.8%) | amount 83.86 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 342, anonymised behavioural signal V45 = 6, anonymised behavioural signal V258 "
             }
           ]
         }
@@ -259,7 +260,7 @@
         "error": null,
         "output": {
           "question": "What are the review requirements and evidence standards for a CRITICAL risk transaction?",
-          "guidance": "For a CRITICAL risk transaction, the review requirements and evidence standards are as follows:\n\n* The transaction must be reviewed within one hour by the Fraud Operations team. (Source: [01_risk_scoring_and_decisions.md])\n* The analyst must record a decision with written reasoning. (Source: [05_alert_triage_sla.md])\n* A decision to decline must cite at least two independent indicators. (Source: [05_alert_triage_sla.md])\n* A single elevated model score is not sufficient grounds for decline, because the model is a probabilistic instrument and false positives are expected at every operating point. (Source: [05_alert_triage_sla.md])\n\nNote that the provided policy context does not specify the exact content of the written reasoning, only that it must be specific enough that a second analyst reading it could reach the same conclusion without re-reviewing the raw data.",
+          "guidance": "For a CRITICAL risk transaction, the review requirements and evidence standards are as follows:\n\n* The transaction must be reviewed within one hour by the Fraud Operations team. (Source: [01_risk_scoring_and_decisions.md])\n* The analyst must record a decision with written reasoning. (Source: [05_alert_triage_sla.md])\n* A decision to decline must cite at least two independent indicators. (Source: [05_alert_triage_sla.md])\n* A single elevated model score is not sufficient grounds for decline, because the model is a probabilistic instrument and false positives are expected at every operating point. (Source: [05_alert_triage_sla.md])\n\nNote that the provided policy context does not specify the exact steps or requirements for the review process, but rather provides the overall framework and guidelines for handling CRITICAL risk transactions.",
           "sources": [
             "01_risk_scoring_and_decisions.md",
             "05_alert_triage_sla.md",
@@ -268,95 +269,95 @@
         }
       }
     ],
-    "summary": "INVESTIGATION SUMMARY\n\nASSESSMENT:\nThis transaction is flagged as CRITICAL due to a high risk probability score of 0.9999, driven by multiple indicators including DeviceInfo, a count of related addresses, and id_33.\n\nKEY DRIVERS:\nThe model scored this transaction as CRITICAL primarily because of the following factors:\n- DeviceInfo = VS425PP Build/LMY47V\n- a count of related addresses = 7.0\n- id_33 = 855x480\n\nPRECEDENT:\nSimilar historical cases (similarity: 0.679, 0.669, 0.666) suggest that transactions with similar risk indicators have been flagged as HIGH or CRITICAL, indicating a high likelihood of fraud.\n\nPOLICY:\nFor a CRITICAL risk transaction, the review requirements and evidence standards are as follows:\n* The transaction must be reviewed within one hour by the Fraud Operations team.\n* The analyst must record a decision with written reasoning.\n* A decision to decline must cite at least two independent indicators.\n\nRECOMMENDED ACTION:\nThe analyst should decline the transaction and contact the cardholder immediately, citing at least two independent indicators (e.g. DeviceInfo, a count of related addresses) as the reason for decline.",
+    "summary": "INVESTIGATION SUMMARY\n\nASSESSMENT:\nThis transaction appears to be a high-risk, critical alert driven by a count of related addresses, anonymised behavioural signal V258, and id_09, indicating potential fraudulent activity.\n\nKEY DRIVERS:\nThe model scored this transaction as CRITICAL due to the presence of a count of related addresses (C1), anonymised behavioural signal V258, id_09, and C11, which all increase the risk of fraudulent activity.\n\nPRECEDENT:\nSimilar historical cases (similarity: 0.66-0.655) have been flagged as CRITICAL, with confirmed fraud and similar risk factors, suggesting that this transaction may also be fraudulent.\n\nPOLICY:\nAccording to the authoritative table lookup, for a CRITICAL risk transaction, the required action is to \"decline and contact the cardholder immediately\" (source: 01_risk_scoring_and_decisions.md).\n\nRECOMMENDED ACTION:\nThe analyst should decline this transaction and contact the cardholder immediately, citing at least two independent indicators (C1 and id_09) and recording a decision with written reasoning.",
     "model": "llama3.2:3b"
   },
   "shap": {
     "top_20": [
       {
         "feature": "C13",
-        "mean_abs_shap": 0.23653532564640045
-      },
-      {
-        "feature": "TransactionAmt",
-        "mean_abs_shap": 0.21962186694145203
+        "mean_abs_shap": 0.19754931330680847
       },
       {
         "feature": "C14",
-        "mean_abs_shap": 0.20406946539878845
-      },
-      {
-        "feature": "V70",
-        "mean_abs_shap": 0.19294637441635132
+        "mean_abs_shap": 0.1871815025806427
       },
       {
         "feature": "card6",
-        "mean_abs_shap": 0.190628781914711
+        "mean_abs_shap": 0.18358589708805084
       },
       {
-        "feature": "P_emaildomain",
-        "mean_abs_shap": 0.18037471175193787
+        "feature": "V70",
+        "mean_abs_shap": 0.18100717663764954
       },
       {
         "feature": "C1",
-        "mean_abs_shap": 0.15439172089099884
+        "mean_abs_shap": 0.17925767600536346
       },
       {
-        "feature": "card1_freq",
-        "mean_abs_shap": 0.15032052993774414
+        "feature": "P_emaildomain",
+        "mean_abs_shap": 0.17785394191741943
       },
       {
-        "feature": "C11",
-        "mean_abs_shap": 0.12709669768810272
+        "feature": "TransactionAmt",
+        "mean_abs_shap": 0.17690521478652954
       },
       {
-        "feature": "V258",
-        "mean_abs_shap": 0.12659002840518951
-      },
-      {
-        "feature": "D2",
-        "mean_abs_shap": 0.12214815616607666
-      },
-      {
-        "feature": "card1",
-        "mean_abs_shap": 0.12053237855434418
+        "feature": "V294",
+        "mean_abs_shap": 0.14107410609722137
       },
       {
         "feature": "C5",
-        "mean_abs_shap": 0.11162362992763519
+        "mean_abs_shap": 0.13312000036239624
+      },
+      {
+        "feature": "C11",
+        "mean_abs_shap": 0.1289883255958557
+      },
+      {
+        "feature": "card1_freq",
+        "mean_abs_shap": 0.1254044771194458
+      },
+      {
+        "feature": "D1n",
+        "mean_abs_shap": 0.12287730723619461
+      },
+      {
+        "feature": "R_emaildomain",
+        "mean_abs_shap": 0.12042774260044098
+      },
+      {
+        "feature": "card1",
+        "mean_abs_shap": 0.10916393995285034
       },
       {
         "feature": "id_31",
-        "mean_abs_shap": 0.10775497555732727
-      },
-      {
-        "feature": "D1",
-        "mean_abs_shap": 0.09498103708028793
-      },
-      {
-        "feature": "addr1_freq",
-        "mean_abs_shap": 0.09471015632152557
-      },
-      {
-        "feature": "M6",
-        "mean_abs_shap": 0.09438207000494003
+        "mean_abs_shap": 0.10658697783946991
       },
       {
         "feature": "C2",
-        "mean_abs_shap": 0.09425723552703857
+        "mean_abs_shap": 0.09563317894935608
+      },
+      {
+        "feature": "M5",
+        "mean_abs_shap": 0.09458760917186737
+      },
+      {
+        "feature": "M6",
+        "mean_abs_shap": 0.09295238554477692
+      },
+      {
+        "feature": "card1_amt_mean_prior",
+        "mean_abs_shap": 0.09195107966661453
       },
       {
         "feature": "DeviceInfo",
-        "mean_abs_shap": 0.09296203404664993
-      },
-      {
-        "feature": "dist1",
-        "mean_abs_shap": 0.09146913886070251
+        "mean_abs_shap": 0.08972396701574326
       }
     ],
     "leakage_audit": {
       "top_feature": "C13",
-      "top_feature_share": 0.0843,
+      "top_feature_share": 0.0722,
       "suspects": [],
       "verdict": "healthy - importance is spread across many features, which is what genuine fraud signal looks like"
     }
@@ -439,33 +440,33 @@
     "hits": [
       {
         "rank": 1,
-        "similarity": 0.4491,
-        "transaction_id": 3428031,
+        "similarity": 0.456,
+        "transaction_id": 3485568,
         "risk_band": "CRITICAL",
-        "probability": 0.9993,
-        "amount": 400.0,
+        "probability": 0.9565,
+        "amount": 92.71,
         "is_fraud": 0,
-        "text": "ALERT 3428031 | risk CRITICAL (99.9%) | amount 400.00 Context: ProductCD=H, card4=mastercard, card6=debit, DeviceType=mobile. The model raised this alert primarily because of transaction amount = 400, anonymised behavioural signal V258 = 2, DeviceInfo = SAMSUNG SM-J327T1 Build/NRD90M and id_33 = 1280x720. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+        "text": "ALERT 3485568 | risk CRITICAL (95.6%) | amount 92.71 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of distinct related entities = 0, DeviceInfo = SAMSUNG SM-J120H Build/LMY47V, the recipient email domain = gmail.com and card1_amt_ratio = 2.33. Reducing the score: card1_amt_mean_prior = 39.8 and the card type (debit/credit) = debit. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
       },
       {
         "rank": 2,
-        "similarity": 0.4463,
-        "transaction_id": 3435422,
+        "similarity": 0.4431,
+        "transaction_id": 3456894,
         "risk_band": "CRITICAL",
-        "probability": 0.9785,
-        "amount": 150.0,
-        "is_fraud": 1,
-        "text": "ALERT 3435422 | risk CRITICAL (97.9%) | amount 150.00 Context: ProductCD=H, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of DeviceInfo = SM-J327T1 Build/NRD90M, anonymised behavioural signal V258 = 3, id_33 = 1280x720 and a count of distinct related entities = 0. Reducing the score: the recipient email domain = anonymous.com and the browser = chrome 65.0 for android. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+        "probability": 0.9917,
+        "amount": 109.68,
+        "is_fraud": 0,
+        "text": "ALERT 3456894 | risk CRITICAL (99.2%) | amount 109.68 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=mobile. The model raised this alert primarily because of DeviceInfo = SM-N950F Build/NMF26X, a count of distinct related entities = 0, the recipient email domain = gmail.com and anonymised behavioural signal V187 = 2. Reducing the score: the browser = chrome 65.0 for android and card1 = 1.83e+04. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
       },
       {
         "rank": 3,
-        "similarity": 0.444,
-        "transaction_id": 3435393,
+        "similarity": 0.4405,
+        "transaction_id": 3431249,
         "risk_band": "CRITICAL",
-        "probability": 0.975,
-        "amount": 150.0,
+        "probability": 0.9931,
+        "amount": 50.0,
         "is_fraud": 1,
-        "text": "ALERT 3435393 | risk CRITICAL (97.5%) | amount 150.00 Context: ProductCD=H, card4=visa, card6=credit, DeviceType=mobile. The model raised this alert primarily because of DeviceInfo = SM-J327T1 Build/NRD90M, id_33 = 1280x720, anonymised behavioural signal V258 = 2 and a count of distinct related entities = 0. Reducing the score: the browser = chrome 65.0 for android and the recipient email domain = anonymous.com. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+        "text": "ALERT 3431249 | risk CRITICAL (99.3%) | amount 50.00 Context: ProductCD=H, card4=mastercard, card6=debit, DeviceType=mobile. The model raised this alert primarily because of anonymised behavioural signal V258 = 4, anonymised behavioural signal V156 = 4, a count of distinct related entities = 0 and anonymised behavioural signal V187 = 2. Reducing the score: id_30 = iOS 11.2.5 and transaction amount = 50. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
       }
     ]
   }

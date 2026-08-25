@@ -39,7 +39,7 @@ Stages 3b–7 on the real data: features, models, thresholds, money, SHAP.
 
 | Stage | What it does |
 |---|---|
-| **3b. Features** | 434 → 470 columns: deterministic, plus one fitted encoder |
+| **3b-3c. Features** | 434 → 504 columns: deterministic, causal entity aggregates, one fitted encoder |
 | **4. Models** | Logistic Regression baseline, then XGBoost |
 | **5. Evaluation** | PR-AUC, operating points, cost-optimal threshold |
 | **7. Explainability** | SHAP reason codes + a leakage audit |
@@ -77,11 +77,12 @@ print("loaded:", ", ".join(results.keys()))
 ---
 ## 1. The feature set
 
-**434 → 470 columns.** Two kinds, and confusing them is how leakage happens.
+**434 → 504 columns.** Three kinds, and confusing them is how leakage happens.
 
 | Kind | The test | Safe before the split? |
 |---|---|---|
 | **Deterministic** | *"Could I compute this for one transaction at the API, with no dataset?"* | ✅ Yes |
+| **Causal aggregate** | Looks only at that entity's EARLIER rows | ✅ Yes — a row can only see the past |
 | **Fitted** | Learns a parameter across many rows | ❌ Train only |
 
 `log(amount)` → yes, just maths on one number → **deterministic**.
@@ -213,10 +214,16 @@ alert budget is the most realistic constraint in real fraud operations:
 from risklens.data.ingest import load_joined
 from risklens.data.split import temporal_split
 from risklens.features.build import add_deterministic_features
+from risklens.features.entity import build_entity_features
 
 model = joblib.load(ROOT / "models" / "xgboost.joblib")
 df = load_joined(cfg)
 df = add_deterministic_features(df)
+# Same entity step the training script ran. Omitting it here would rebuild a
+# DIFFERENT feature set from the one the model was fitted on - which is
+# training/serving skew, just inside a notebook.
+df = build_entity_features(df, time_col=cfg.time_column,
+                           amount_col=cfg.amount_column)
 df = encoder.transform(df)
 masks, _, _ = temporal_split(df, time_col=cfg.time_column,
                              target_col=cfg.target, split_cfg=cfg.split)

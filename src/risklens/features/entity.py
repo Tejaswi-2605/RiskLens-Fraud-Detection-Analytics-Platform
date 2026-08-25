@@ -73,7 +73,9 @@ D_COLUMNS = [f"D{i}" for i in range(1, 16)]
 ENTITY_KEYS = ["card1", "uid", "uid2"]
 
 
-def add_normalised_d_columns(df: pd.DataFrame, *, time_col: str = "TransactionDT") -> pd.DataFrame:
+def add_normalised_d_columns(
+    df: pd.DataFrame, *, time_col: str = "TransactionDT", copy: bool = True
+) -> pd.DataFrame:
     """Turn each 'days since X' offset into the absolute day X occurred.
 
     Tiny example. Two transactions from the same card, 10 days apart:
@@ -85,7 +87,7 @@ def add_normalised_d_columns(df: pd.DataFrame, *, time_col: str = "TransactionDT
     Normalised, both say "this card was first seen on day 70", which is the
     fact that actually links them.
     """
-    out = df.copy()
+    out = df.copy() if copy else df
     day = out[time_col] / SECONDS_PER_DAY
     out["day"] = day.astype("float32")
 
@@ -100,7 +102,7 @@ def add_normalised_d_columns(df: pd.DataFrame, *, time_col: str = "TransactionDT
     return out
 
 
-def add_entity_keys(df: pd.DataFrame) -> pd.DataFrame:
+def add_entity_keys(df: pd.DataFrame, *, copy: bool = True) -> pd.DataFrame:
     """Construct inferred client identifiers of increasing specificity.
 
     uid   card1 + addr1 + first-seen-day   -> a probable client
@@ -115,7 +117,7 @@ def add_entity_keys(df: pd.DataFrame) -> pd.DataFrame:
     silently discard rows, and "we do not know the billing region" is itself a
     consistent, informative group.
     """
-    out = df.copy()
+    out = df.copy() if copy else df
 
     def part(col: str) -> pd.Series:
         if col not in out.columns:
@@ -171,7 +173,26 @@ def add_expanding_entity_features(
     would look like signal and generalise to nothing.
     """
     keys = keys or ENTITY_KEYS
-    out = df.sort_values(time_col, kind="mergesort").copy()
+
+    # Sorting is only needed if the frame is not already in time order - and
+    # Stage 1 ingestion sorts by TransactionDT, so in practice it never is.
+    #
+    # This check is not a micro-optimisation. `sort_values` copies the frame,
+    # and at 590,540 rows x 460+ columns pandas must consolidate the blocks
+    # into one contiguous ~937 MB array to do it. That allocation failed
+    # outright on a machine with several gigabytes free:
+    #
+    #     numpy._core._exceptions._ArrayMemoryError: Unable to allocate
+    #     937 MiB for an array with shape (416, 590540)
+    #
+    # Skipping a sort that would be a no-op removes the allocation entirely.
+    already_sorted = df[time_col].is_monotonic_increasing
+    if already_sorted:
+        out = df
+        log.info("frame already in time order - skipping the sort (saves ~900 MB)")
+    else:
+        out = df.sort_values(time_col, kind="mergesort")
+
     amt = out[amount_col].astype("float64")
 
     for key in keys:
@@ -217,8 +238,9 @@ def add_expanding_entity_features(
 
         log.info("entity features for %-6s -> 6 columns", key)
 
-    # restore the caller's row order
-    return out.sort_index()
+    # Only restore order if we actually reordered. Calling sort_index() on an
+    # unsorted-but-original frame would be another full copy for no reason.
+    return out if already_sorted else out.sort_index()
 
 
 def build_entity_features(
@@ -227,10 +249,23 @@ def build_entity_features(
     time_col: str = "TransactionDT",
     amount_col: str = "TransactionAmt",
 ) -> pd.DataFrame:
-    """The full entity pipeline: normalise D, build keys, aggregate causally."""
+    """The full entity pipeline: normalise D, build keys, aggregate causally.
+
+    Memory note
+    -----------
+    Each step used to `.copy()` the frame. At 590,540 rows x 460+ columns that
+    is ~900 MB per copy, and three copies peaked high enough to fail with
+
+        numpy._core._exceptions._ArrayMemoryError:
+        Unable to allocate 937 MiB for an array with shape (416, 590540)
+
+    on a machine with several gigabytes free. So we copy ONCE here and the
+    steps mutate that copy in place. The caller's frame is still never
+    modified, which is the property that actually matters.
+    """
     before = df.shape[1]
-    out = add_normalised_d_columns(df, time_col=time_col)
-    out = add_entity_keys(out)
+    out = add_normalised_d_columns(df, time_col=time_col, copy=True)
+    out = add_entity_keys(out, copy=False)
     out = add_expanding_entity_features(
         out, time_col=time_col, amount_col=amount_col
     )

@@ -30,6 +30,7 @@ Two properties make this hard, and they drive every design choice:
 | 1 | Data ingestion | ✅ | [stage01_ingestion.md](docs/stage01_ingestion.md) |
 | 2 | EDA + data quality + statistics | ✅ | [stage02_03_eda_and_split.md](docs/stage02_03_eda_and_split.md) |
 | 3 | Temporal split + feature engineering | ✅ | [stage02_03_eda_and_split.md](docs/stage02_03_eda_and_split.md) · [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
+| 3c | **Entity-linkage features** | ✅ | [stage03c_entity_features.md](docs/stage03c_entity_features.md) |
 | 4 | Supervised modelling | ✅ | [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
 | 5 | Evaluation + risk engine + calibration | ✅ | [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
 | 6 | Unsupervised + fraud typologies | ✅ | [stage06_07_unsupervised_and_shap.md](docs/stage06_07_unsupervised_and_shap.md) |
@@ -43,37 +44,61 @@ number quoted below comes from an artefact in `reports/`.
 
 ## Headline results
 
-Measured on the **test** partition, which was opened once, at a threshold
-chosen on validation and applied unchanged.
+Measured on the **test** partition — opened once, at a threshold chosen on
+validation and applied unchanged.
 
 | Metric | Value |
 |---|---|
-| PR-AUC | **0.4680** (13.1× random) |
-| ROC-AUC | 0.8883 |
-| Brier (calibrated) | 0.02564 |
-| Precision / Recall | 28.9% / 60.0% |
-| Alert rate | 7.40% |
-| **Fraud loss avoided** | **40.1%** (£158,772) |
+| **PR-AUC** | **0.5144** (14.4× random) |
+| ROC-AUC | 0.8969 |
+| Brier (calibrated) | 0.0238 |
+| ECE (calibrated) | 0.0067 |
+| Precision / Recall | 29.7% / **66.0%** |
+| Alert rate | 7.91% |
+| **Fraud loss avoided** | **45.6%** (£180,354) |
+| Generalisation gap | −0.043 |
 
-Baseline logistic regression scored PR-AUC **0.3137** (9.0× random), so the
-gradient-boosted model is +49% relative — which is what justifies its
-complexity.
+A **logistic-regression baseline** scores PR-AUC 0.3137 (9.0× random). A random
+model scores the base rate, 0.0347 — which is why PR-AUC is always reported
+here as a *lift*.
 
-**Calibration** (Platt, fitted on the earlier half of validation):
-Brier 0.0575 → **0.0223** (61% better), ECE 0.134 → **0.0081** (16.5× better),
-maximum predicted probability 0.9999 → 0.7735, with **zero rank inversions**.
+**Calibration** (Platt, fitted on the earlier half of validation): Brier
+0.0448 → **0.0209**, ECE 0.1070 → **0.0067**, maximum predicted probability
+0.9999 → 0.8277, with **zero rank inversions**. The risk engine multiplies
+probability by money, so honest probabilities matter as much as good ranking.
 
-## Three bugs found by running the thing
+### What entity-linkage features added
 
-Each was caught by a result being *impossible* rather than by a test:
+| | PR-AUC (test) | Loss avoided |
+|---|---|---|
+| Without entity features | 0.4680 | 40.1% |
+| **With behavioural aggregates** | **0.5144** (+9.9%) | **45.6%** (+5.5 pts) |
 
-1. **"116.8% of fraud loss avoided"** — the cost function treated caught fraud
+Recall rose 60.0% → 66.0% at essentially unchanged precision — a strictly
+better operating point, worth about **£21,600** more avoided loss over the
+26-day test period.
+
+## Four bugs found by running the thing
+
+Each was caught by a result being *impossible* or *suspicious*, not by a test:
+
+1. **"116.8% of fraud loss avoided."** The cost function treated caught fraud
    as revenue rather than avoided loss, so the optimiser was rewarded for
-   flagging everything. Corrected to 44.2%.
+   flagging everything. You cannot avoid more loss than exists.
+
 2. **Fraud is 4× higher when identity data is PRESENT** — the opposite of the
    stated hypothesis. A confounder: identity is only captured for
    card-not-present transactions, which are inherently riskier.
-3. **The copilot reported the CRITICAL action as the HIGH one** — a 3B model
+
+3. **A 26% "improvement" that was mostly memorisation.** Passing the raw
+   217,850-level entity IDs to the model let it learn *which customers had
+   been defrauded* rather than what fraud looks like — rewarded here because
+   the dataset propagates fraud labels across linked cards and addresses. A
+   single tree reached 0.42 on that alone. It also made the model too large to
+   serialise. Dropping the raw IDs and keeping only the behavioural aggregates
+   gives the honest 0.5144 above.
+
+4. **The copilot reported the CRITICAL action as the HIGH one** — a 3B model
    shifted a row while reading a markdown table. Fixed architecturally: the
    band→action lookup is now code, not prose comprehension.
 
@@ -103,14 +128,21 @@ was wrong.
 ```powershell
 python -m pytest                          # 51 tests, no dataset needed
 
-python scriptsun_ingest.py              # Stage 1     -> interim Parquet
-python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts
+un_ingest.py              # Stage 1     -> interim Parquet
+python scripts
+un_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scripts
+un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
 python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scriptsun_eval.py                # Stage 5     -> thresholds + test
-python scriptsun_calibrate.py           # Stage 5b    -> calibration
-python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scripts
+un_eval.py                # Stage 5     -> thresholds + test
+python scripts
+un_calibrate.py           # Stage 5b    -> calibration
+python scripts
+un_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scripts
+un_llm.py                 # Stages 8c-9 -> RAG + copilot
 python scriptsuild_notebooks.py         # generate + execute notebooks
 python scriptsuild_notebook_02.py
 
@@ -124,14 +156,21 @@ pip install -e .
 ```powershell
 python -m pytest                          # 51 tests, no dataset needed
 
-python scriptsun_ingest.py              # Stage 1     -> interim Parquet
-python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts
+un_ingest.py              # Stage 1     -> interim Parquet
+python scripts
+un_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scripts
+un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
 python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scriptsun_eval.py                # Stage 5     -> thresholds + test
-python scriptsun_calibrate.py           # Stage 5b    -> calibration
-python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scripts
+un_eval.py                # Stage 5     -> thresholds + test
+python scripts
+un_calibrate.py           # Stage 5b    -> calibration
+python scripts
+un_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scripts
+un_llm.py                 # Stages 8c-9 -> RAG + copilot
 python scriptsuild_notebooks.py         # generate + execute notebooks
 python scriptsuild_notebook_02.py
 
@@ -147,14 +186,21 @@ Needs a Kaggle account and one-time acceptance of the
 ```powershell
 python -m pytest                          # 51 tests, no dataset needed
 
-python scriptsun_ingest.py              # Stage 1     -> interim Parquet
-python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts
+un_ingest.py              # Stage 1     -> interim Parquet
+python scripts
+un_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scripts
+un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
 python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scriptsun_eval.py                # Stage 5     -> thresholds + test
-python scriptsun_calibrate.py           # Stage 5b    -> calibration
-python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scripts
+un_eval.py                # Stage 5     -> thresholds + test
+python scripts
+un_calibrate.py           # Stage 5b    -> calibration
+python scripts
+un_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scripts
+un_llm.py                 # Stages 8c-9 -> RAG + copilot
 python scriptsuild_notebooks.py         # generate + execute notebooks
 python scriptsuild_notebook_02.py
 
@@ -165,14 +211,21 @@ python scripts\download_data.py       # needs ~/.kaggle/kaggle.json
 ```powershell
 python -m pytest                          # 51 tests, no dataset needed
 
-python scriptsun_ingest.py              # Stage 1     -> interim Parquet
-python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts
+un_ingest.py              # Stage 1     -> interim Parquet
+python scripts
+un_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scripts
+un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
 python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scriptsun_eval.py                # Stage 5     -> thresholds + test
-python scriptsun_calibrate.py           # Stage 5b    -> calibration
-python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scripts
+un_eval.py                # Stage 5     -> thresholds + test
+python scripts
+un_calibrate.py           # Stage 5b    -> calibration
+python scripts
+un_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scripts
+un_llm.py                 # Stages 8c-9 -> RAG + copilot
 python scriptsuild_notebooks.py         # generate + execute notebooks
 python scriptsuild_notebook_02.py
 
@@ -193,14 +246,21 @@ Or download `train_transaction.csv` and `train_identity.csv` manually into
 ```powershell
 python -m pytest                          # 51 tests, no dataset needed
 
-python scriptsun_ingest.py              # Stage 1     -> interim Parquet
-python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts
+un_ingest.py              # Stage 1     -> interim Parquet
+python scripts
+un_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scripts
+un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
 python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scriptsun_eval.py                # Stage 5     -> thresholds + test
-python scriptsun_calibrate.py           # Stage 5b    -> calibration
-python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scripts
+un_eval.py                # Stage 5     -> thresholds + test
+python scripts
+un_calibrate.py           # Stage 5b    -> calibration
+python scripts
+un_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scripts
+un_llm.py                 # Stages 8c-9 -> RAG + copilot
 python scriptsuild_notebooks.py         # generate + execute notebooks
 python scriptsuild_notebook_02.py
 
@@ -215,14 +275,21 @@ python scripts\build_notebooks.py         # generate + execute notebooks
 ```powershell
 python -m pytest                          # 51 tests, no dataset needed
 
-python scriptsun_ingest.py              # Stage 1     -> interim Parquet
-python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts
+un_ingest.py              # Stage 1     -> interim Parquet
+python scripts
+un_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scripts
+un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
 python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scriptsun_eval.py                # Stage 5     -> thresholds + test
-python scriptsun_calibrate.py           # Stage 5b    -> calibration
-python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scripts
+un_eval.py                # Stage 5     -> thresholds + test
+python scripts
+un_calibrate.py           # Stage 5b    -> calibration
+python scripts
+un_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scripts
+un_llm.py                 # Stages 8c-9 -> RAG + copilot
 python scriptsuild_notebooks.py         # generate + execute notebooks
 python scriptsuild_notebook_02.py
 
@@ -239,14 +306,21 @@ Every script has `--help`. `run_train.py --sample 150000` iterates faster.
 ```powershell
 python -m pytest                          # 51 tests, no dataset needed
 
-python scriptsun_ingest.py              # Stage 1     -> interim Parquet
-python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts
+un_ingest.py              # Stage 1     -> interim Parquet
+python scripts
+un_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scripts
+un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
 python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scriptsun_eval.py                # Stage 5     -> thresholds + test
-python scriptsun_calibrate.py           # Stage 5b    -> calibration
-python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scripts
+un_eval.py                # Stage 5     -> thresholds + test
+python scripts
+un_calibrate.py           # Stage 5b    -> calibration
+python scripts
+un_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scripts
+un_llm.py                 # Stages 8c-9 -> RAG + copilot
 python scriptsuild_notebooks.py         # generate + execute notebooks
 python scriptsuild_notebook_02.py
 
@@ -258,21 +332,29 @@ data/raw/*.csv                     immutable, gitignored, SHA-256 hashed
 data/interim/*.parquet             77 MB, 40× faster to load than CSV
         ↓  Stage 3: TEMPORAL SPLIT  ← the leakage firewall
    train (74.2%) │ val (12.4%) │ test (12.5%)   + 1-day embargo
-        ↓  Stages 3b-7: features → models → evaluation → SHAP
+        ↓  Stage 3b-3c: deterministic + causal entity features (504 total)
+        ↓  Stages 4-7: models → evaluation → calibration → SHAP
 models/*.joblib
         ↓  Stages 8-9: narratives → embeddings → RAG → agent
         ↓  Stage 10: FastAPI (:8000) · Streamlit (:8502)
 ```powershell
 python -m pytest                          # 51 tests, no dataset needed
 
-python scriptsun_ingest.py              # Stage 1     -> interim Parquet
-python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts
+un_ingest.py              # Stage 1     -> interim Parquet
+python scripts
+un_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scripts
+un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
 python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scriptsun_eval.py                # Stage 5     -> thresholds + test
-python scriptsun_calibrate.py           # Stage 5b    -> calibration
-python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scripts
+un_eval.py                # Stage 5     -> thresholds + test
+python scripts
+un_calibrate.py           # Stage 5b    -> calibration
+python scripts
+un_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scripts
+un_llm.py                 # Stages 8c-9 -> RAG + copilot
 python scriptsuild_notebooks.py         # generate + execute notebooks
 python scriptsuild_notebook_02.py
 
@@ -296,14 +378,21 @@ encoding — is fitted on the training partition only, inside an sklearn
 ```powershell
 python -m pytest                          # 51 tests, no dataset needed
 
-python scriptsun_ingest.py              # Stage 1     -> interim Parquet
-python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts
+un_ingest.py              # Stage 1     -> interim Parquet
+python scripts
+un_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scripts
+un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
 python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scriptsun_eval.py                # Stage 5     -> thresholds + test
-python scriptsun_calibrate.py           # Stage 5b    -> calibration
-python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scripts
+un_eval.py                # Stage 5     -> thresholds + test
+python scripts
+un_calibrate.py           # Stage 5b    -> calibration
+python scripts
+un_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scripts
+un_llm.py                 # Stages 8c-9 -> RAG + copilot
 python scriptsuild_notebooks.py         # generate + execute notebooks
 python scriptsuild_notebook_02.py
 
@@ -321,8 +410,10 @@ src/risklens/
   eda/stats.py               chi-square, Cramér's V, Mann-Whitney, Cliff's δ, PSI
   eda/plots.py               7 decision-relevant figures
   features/build.py          deterministic features + FrequencyEncoder
+  features/entity.py         causal entity aggregates (backward-only windows)
   models/train.py            baseline + XGBoost + imbalance handling
   models/evaluate.py         metrics, thresholds, CostModel risk engine
+  models/calibrate.py        isotonic/Platt calibration, ECE, reliability
   models/explain.py          SHAP reason codes + leakage audit
   models/unsupervised.py     IsolationForest + fraud typology clustering
 scripts/                     CLI entry points, in dependency order
@@ -334,14 +425,21 @@ tests/                       26 tests on synthetic fixtures
 ```powershell
 python -m pytest                          # 51 tests, no dataset needed
 
-python scriptsun_ingest.py              # Stage 1     -> interim Parquet
-python scriptsun_eda.py                 # Stages 2-3  -> tables + 7 figures
-python scriptsun_train.py --fast        # Stages 3b-4 -> models   (~25 min)
+python scripts
+un_ingest.py              # Stage 1     -> interim Parquet
+python scripts
+un_eda.py                 # Stages 2-3  -> tables + 7 figures
+python scripts
+un_train.py --fast        # Stages 3b-4 -> models   (~25 min)
 python scripts\export_feature_schema.py   # serving dtypes (skew guard)
-python scriptsun_eval.py                # Stage 5     -> thresholds + test
-python scriptsun_calibrate.py           # Stage 5b    -> calibration
-python scriptsun_genai.py               # Stages 6-9  -> SHAP, search, RAG
-python scriptsun_llm.py                 # Stages 8c-9 -> RAG + copilot
+python scripts
+un_eval.py                # Stage 5     -> thresholds + test
+python scripts
+un_calibrate.py           # Stage 5b    -> calibration
+python scripts
+un_genai.py               # Stages 6-9  -> SHAP, search, RAG
+python scripts
+un_llm.py                 # Stages 8c-9 -> RAG + copilot
 python scriptsuild_notebooks.py         # generate + execute notebooks
 python scriptsuild_notebook_02.py
 

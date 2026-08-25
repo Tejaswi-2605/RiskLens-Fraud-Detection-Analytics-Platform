@@ -1,5 +1,19 @@
 [
   {
+    "transaction_id": 3481073,
+    "probability": 0.9999,
+    "risk_band": "CRITICAL",
+    "amount": 44.27,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 341",
+      "anonymised behavioural signal V258 = 11",
+      "id_09 = 4",
+      "anonymised behavioural signal V45 = 9"
+    ],
+    "text": "ALERT 3481073 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 341, anonymised behavioural signal V258 = 11, id_09 = 4 and anonymised behavioural signal V45 = 9. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
     "transaction_id": 3478001,
     "probability": 0.9999,
     "risk_band": "CRITICAL",
@@ -7,123 +21,11 @@
     "is_fraud": 1,
     "drivers": [
       "DeviceInfo = VS425PP Build/LMY47V",
+      "id_33 = 855x480",
       "a count of related addresses = 7",
-      "id_33 = 855x480",
-      "anonymised behavioural signal V258 = 2"
+      "a count of distinct related entities = 0"
     ],
-    "text": "ALERT 3478001 | risk CRITICAL (100.0%) | amount 150.00 Context: ProductCD=H, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of DeviceInfo = VS425PP Build/LMY47V, a count of related addresses = 7, id_33 = 855x480 and anonymised behavioural signal V258 = 2. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3492819,
-    "probability": 0.9999,
-    "risk_band": "CRITICAL",
-    "amount": 200.0,
-    "is_fraud": 1,
-    "drivers": [
-      "DeviceInfo = VS425PP Build/LMY47V",
-      "a count of related addresses = 8",
-      "a count of related payment activity = 0",
-      "id_33 = 855x480"
-    ],
-    "text": "ALERT 3492819 | risk CRITICAL (100.0%) | amount 200.00 Context: ProductCD=H, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of DeviceInfo = VS425PP Build/LMY47V, a count of related addresses = 8, a count of related payment activity = 0 and id_33 = 855x480. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3481073,
-    "probability": 0.9999,
-    "risk_band": "CRITICAL",
-    "amount": 44.27,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 11",
-      "a count of related addresses = 341",
-      "id_09 = 4",
-      "anonymised behavioural signal V45 = 9"
-    ],
-    "text": "ALERT 3481073 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 11, a count of related addresses = 341, id_09 = 4 and anonymised behavioural signal V45 = 9. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3481125,
-    "probability": 0.9998,
-    "risk_band": "CRITICAL",
-    "amount": 150.0,
-    "is_fraud": 1,
-    "drivers": [
-      "DeviceInfo = VS425PP Build/LMY47V",
-      "a count of related addresses = 8",
-      "id_33 = 855x480",
-      "a count of related payment activity = 0"
-    ],
-    "text": "ALERT 3481125 | risk CRITICAL (100.0%) | amount 150.00 Context: ProductCD=H, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of DeviceInfo = VS425PP Build/LMY47V, a count of related addresses = 8, id_33 = 855x480 and a count of related payment activity = 0. Reducing the score: id_30 = Android 5.1.1. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3481075,
-    "probability": 0.9998,
-    "risk_band": "CRITICAL",
-    "amount": 44.27,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 11",
-      "a count of related addresses = 341",
-      "id_09 = 4",
-      "anonymised behavioural signal V87 = 9"
-    ],
-    "text": "ALERT 3481075 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 11, a count of related addresses = 341, id_09 = 4 and anonymised behavioural signal V87 = 9. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3495231,
-    "probability": 0.9998,
-    "risk_band": "CRITICAL",
-    "amount": 39.59,
-    "is_fraud": 1,
-    "drivers": [
-      "a count of related addresses = 32",
-      "anonymised behavioural signal V258 = 15",
-      "anonymised behavioural signal V45 = 6",
-      "a count of related payment activity = 1"
-    ],
-    "text": "ALERT 3495231 | risk CRITICAL (100.0%) | amount 39.59 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 32, anonymised behavioural signal V258 = 15, anonymised behavioural signal V45 = 6 and a count of related payment activity = 1. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3481071,
-    "probability": 0.9998,
-    "risk_band": "CRITICAL",
-    "amount": 44.27,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 10",
-      "a count of related addresses = 340",
-      "id_09 = 4",
-      "anonymised behavioural signal V45 = 8"
-    ],
-    "text": "ALERT 3481071 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 10, a count of related addresses = 340, id_09 = 4 and anonymised behavioural signal V45 = 8. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3435414,
-    "probability": 0.9998,
-    "risk_band": "CRITICAL",
-    "amount": 25.27,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 8",
-      "a count of related addresses = 117",
-      "anonymised behavioural signal V45 = 12",
-      "the browser = mobile safari generic"
-    ],
-    "text": "ALERT 3435414 | risk CRITICAL (100.0%) | amount 25.27 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of anonymised behavioural signal V258 = 8, a count of related addresses = 117, anonymised behavioural signal V45 = 12 and the browser = mobile safari generic. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3481069,
-    "probability": 0.9998,
-    "risk_band": "CRITICAL",
-    "amount": 44.27,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 8",
-      "a count of related addresses = 338",
-      "id_09 = 4",
-      "anonymised behavioural signal V87 = 5"
-    ],
-    "text": "ALERT 3481069 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 8, a count of related addresses = 338, id_09 = 4 and anonymised behavioural signal V87 = 5. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3478001 | risk CRITICAL (100.0%) | amount 150.00 Context: ProductCD=H, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of DeviceInfo = VS425PP Build/LMY47V, id_33 = 855x480, a count of related addresses = 7 and a count of distinct related entities = 0. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
     "transaction_id": 3481067,
@@ -132,26 +34,12 @@
     "amount": 44.27,
     "is_fraud": 1,
     "drivers": [
-      "anonymised behavioural signal V258 = 8",
       "a count of related addresses = 338",
+      "anonymised behavioural signal V258 = 8",
       "id_09 = 4",
       "anonymised behavioural signal V45 = 5"
     ],
-    "text": "ALERT 3481067 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 8, a count of related addresses = 338, id_09 = 4 and anonymised behavioural signal V45 = 5. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3495229,
-    "probability": 0.9998,
-    "risk_band": "CRITICAL",
-    "amount": 39.59,
-    "is_fraud": 1,
-    "drivers": [
-      "a count of related addresses = 32",
-      "anonymised behavioural signal V258 = 15",
-      "anonymised behavioural signal V45 = 6",
-      "a count of related payment activity = 1"
-    ],
-    "text": "ALERT 3495229 | risk CRITICAL (100.0%) | amount 39.59 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 32, anonymised behavioural signal V258 = 15, anonymised behavioural signal V45 = 6 and a count of related payment activity = 1. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3481067 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 338, anonymised behavioural signal V258 = 8, id_09 = 4 and anonymised behavioural signal V45 = 5. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
     "transaction_id": 3494166,
@@ -160,30 +48,324 @@
     "amount": 39.59,
     "is_fraud": 1,
     "drivers": [
-      "anonymised behavioural signal V258 = 13",
       "a count of related addresses = 31",
-      "anonymised behavioural signal V87 = 12",
+      "anonymised behavioural signal V258 = 13",
+      "a count of distinct related entities = 0",
+      "anonymised behavioural signal V45 = 4"
+    ],
+    "text": "ALERT 3494166 | risk CRITICAL (100.0%) | amount 39.59 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 31, anonymised behavioural signal V258 = 13, a count of distinct related entities = 0 and anonymised behavioural signal V45 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3494143,
+    "probability": 0.9998,
+    "risk_band": "CRITICAL",
+    "amount": 39.59,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 28",
+      "anonymised behavioural signal V258 = 10",
+      "a count of distinct related entities = 0",
+      "anonymised behavioural signal V45 = 4"
+    ],
+    "text": "ALERT 3494143 | risk CRITICAL (100.0%) | amount 39.59 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 28, anonymised behavioural signal V258 = 10, a count of distinct related entities = 0 and anonymised behavioural signal V45 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3481069,
+    "probability": 0.9997,
+    "risk_band": "CRITICAL",
+    "amount": 44.27,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 338",
+      "anonymised behavioural signal V258 = 8",
+      "id_09 = 4",
+      "anonymised behavioural signal V45 = 6"
+    ],
+    "text": "ALERT 3481069 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 338, anonymised behavioural signal V258 = 8, id_09 = 4 and anonymised behavioural signal V45 = 6. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3472050,
+    "probability": 0.9997,
+    "risk_band": "CRITICAL",
+    "amount": 33.26,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 17",
+      "anonymised behavioural signal V258 = 6",
+      "anonymised behavioural signal V45 = 7",
+      "C8 = 6"
+    ],
+    "text": "ALERT 3472050 | risk CRITICAL (100.0%) | amount 33.26 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 17, anonymised behavioural signal V258 = 6, anonymised behavioural signal V45 = 7 and C8 = 6. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3481070,
+    "probability": 0.9997,
+    "risk_band": "CRITICAL",
+    "amount": 44.27,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 339",
+      "anonymised behavioural signal V258 = 9",
+      "id_09 = 4",
+      "anonymised behavioural signal V45 = 7"
+    ],
+    "text": "ALERT 3481070 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 339, anonymised behavioural signal V258 = 9, id_09 = 4 and anonymised behavioural signal V45 = 7. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3492819,
+    "probability": 0.9997,
+    "risk_band": "CRITICAL",
+    "amount": 200.0,
+    "is_fraud": 1,
+    "drivers": [
+      "DeviceInfo = VS425PP Build/LMY47V",
+      "a count of related addresses = 8",
+      "a count of related payment activity = 0",
+      "C11 = 8"
+    ],
+    "text": "ALERT 3492819 | risk CRITICAL (100.0%) | amount 200.00 Context: ProductCD=H, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of DeviceInfo = VS425PP Build/LMY47V, a count of related addresses = 8, a count of related payment activity = 0 and C11 = 8. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3481065,
+    "probability": 0.9997,
+    "risk_band": "CRITICAL",
+    "amount": 44.27,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 337",
+      "anonymised behavioural signal V258 = 7",
+      "id_09 = 4",
+      "anonymised behavioural signal V45 = 4"
+    ],
+    "text": "ALERT 3481065 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 337, anonymised behavioural signal V258 = 7, id_09 = 4 and anonymised behavioural signal V45 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3495231,
+    "probability": 0.9997,
+    "risk_band": "CRITICAL",
+    "amount": 39.59,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 32",
+      "anonymised behavioural signal V258 = 15",
+      "anonymised behavioural signal V45 = 6",
       "a count of distinct related entities = 0"
     ],
-    "text": "ALERT 3494166 | risk CRITICAL (100.0%) | amount 39.59 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 13, a count of related addresses = 31, anonymised behavioural signal V87 = 12 and a count of distinct related entities = 0. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3495231 | risk CRITICAL (100.0%) | amount 39.59 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 32, anonymised behavioural signal V258 = 15, anonymised behavioural signal V45 = 6 and a count of distinct related entities = 0. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3499650,
+    "probability": 0.9997,
+    "risk_band": "CRITICAL",
+    "amount": 375.0,
+    "is_fraud": 1,
+    "drivers": [
+      "anonymised behavioural signal V258 = 8",
+      "a count of related addresses = 7",
+      "anonymised behavioural signal V156 = 3",
+      "a count of distinct related entities = 0"
+    ],
+    "text": "ALERT 3499650 | risk CRITICAL (100.0%) | amount 375.00 Context: ProductCD=R, card4=mastercard, card6=debit, DeviceType=mobile. The model raised this alert primarily because of anonymised behavioural signal V258 = 8, a count of related addresses = 7, anonymised behavioural signal V156 = 3 and a count of distinct related entities = 0. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3481071,
+    "probability": 0.9997,
+    "risk_band": "CRITICAL",
+    "amount": 44.27,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 340",
+      "anonymised behavioural signal V258 = 10",
+      "id_09 = 4",
+      "anonymised behavioural signal V45 = 8"
+    ],
+    "text": "ALERT 3481071 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 340, anonymised behavioural signal V258 = 10, id_09 = 4 and anonymised behavioural signal V45 = 8. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3481075,
+    "probability": 0.9996,
+    "risk_band": "CRITICAL",
+    "amount": 44.27,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 341",
+      "anonymised behavioural signal V258 = 11",
+      "id_09 = 4",
+      "anonymised behavioural signal V45 = 10"
+    ],
+    "text": "ALERT 3481075 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 341, anonymised behavioural signal V258 = 11, id_09 = 4 and anonymised behavioural signal V45 = 10. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3481060,
+    "probability": 0.9996,
+    "risk_band": "CRITICAL",
+    "amount": 44.27,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 337",
+      "anonymised behavioural signal V258 = 6",
+      "id_09 = 4",
+      "C11 = 145"
+    ],
+    "text": "ALERT 3481060 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 337, anonymised behavioural signal V258 = 6, id_09 = 4 and C11 = 145. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
     "transaction_id": 3479234,
-    "probability": 0.9997,
+    "probability": 0.9996,
     "risk_band": "CRITICAL",
     "amount": 58.65,
     "is_fraud": 1,
     "drivers": [
       "anonymised behavioural signal V258 = 8",
-      "anonymised behavioural signal V45 = 5",
       "a count of distinct related entities = 0",
+      "anonymised behavioural signal V45 = 5",
       "anonymised behavioural signal V87 = 4"
     ],
-    "text": "ALERT 3479234 | risk CRITICAL (100.0%) | amount 58.65 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 8, anonymised behavioural signal V45 = 5, a count of distinct related entities = 0 and anonymised behavioural signal V87 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3479234 | risk CRITICAL (100.0%) | amount 58.65 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 8, a count of distinct related entities = 0, anonymised behavioural signal V45 = 5 and anonymised behavioural signal V87 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3494175,
+    "probability": 0.9996,
+    "risk_band": "CRITICAL",
+    "amount": 39.59,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 31",
+      "anonymised behavioural signal V258 = 13",
+      "a count of distinct related entities = 0",
+      "anonymised behavioural signal V45 = 4"
+    ],
+    "text": "ALERT 3494175 | risk CRITICAL (100.0%) | amount 39.59 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 31, anonymised behavioural signal V258 = 13, a count of distinct related entities = 0 and anonymised behavioural signal V45 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3479505,
+    "probability": 0.9996,
+    "risk_band": "CRITICAL",
+    "amount": 106.48,
+    "is_fraud": 1,
+    "drivers": [
+      "anonymised behavioural signal V258 = 10",
+      "a count of related addresses = 6",
+      "a count of distinct related entities = 0",
+      "anonymised behavioural signal V45 = 4"
+    ],
+    "text": "ALERT 3479505 | risk CRITICAL (100.0%) | amount 106.48 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 10, a count of related addresses = 6, a count of distinct related entities = 0 and anonymised behavioural signal V45 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3444460,
+    "probability": 0.9995,
+    "risk_band": "CRITICAL",
+    "amount": 104.39,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 51",
+      "anonymised behavioural signal V45 = 4",
+      "anonymised behavioural signal V87 = 4",
+      "DeviceInfo = Moto G (4) Build/NPJS25.93-14-10"
+    ],
+    "text": "ALERT 3444460 | risk CRITICAL (100.0%) | amount 104.39 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 51, anonymised behavioural signal V45 = 4, anonymised behavioural signal V87 = 4 and DeviceInfo = Moto G (4) Build/NPJS25.93-14-10. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3494151,
+    "probability": 0.9995,
+    "risk_band": "CRITICAL",
+    "amount": 39.59,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 30",
+      "anonymised behavioural signal V258 = 12",
+      "a count of distinct related entities = 0",
+      "anonymised behavioural signal V45 = 4"
+    ],
+    "text": "ALERT 3494151 | risk CRITICAL (100.0%) | amount 39.59 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 30, anonymised behavioural signal V258 = 12, a count of distinct related entities = 0 and anonymised behavioural signal V45 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3495229,
+    "probability": 0.9995,
+    "risk_band": "CRITICAL",
+    "amount": 39.59,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 32",
+      "anonymised behavioural signal V258 = 15",
+      "anonymised behavioural signal V45 = 6",
+      "a count of distinct related entities = 0"
+    ],
+    "text": "ALERT 3495229 | risk CRITICAL (99.9%) | amount 39.59 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 32, anonymised behavioural signal V258 = 15, anonymised behavioural signal V45 = 6 and a count of distinct related entities = 0. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3468444,
+    "probability": 0.9995,
+    "risk_band": "CRITICAL",
+    "amount": 96.71,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 15",
+      "anonymised behavioural signal V258 = 4",
+      "anonymised behavioural signal V45 = 6",
+      "anonymised behavioural signal V187 = 4"
+    ],
+    "text": "ALERT 3468444 | risk CRITICAL (99.9%) | amount 96.71 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 15, anonymised behavioural signal V258 = 4, anonymised behavioural signal V45 = 6 and anonymised behavioural signal V187 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3495833,
+    "probability": 0.9995,
+    "risk_band": "CRITICAL",
+    "amount": 56.56,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 27",
+      "anonymised behavioural signal V258 = 2",
+      "C8 = 17",
+      "C6 = 15"
+    ],
+    "text": "ALERT 3495833 | risk CRITICAL (99.9%) | amount 56.56 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=mobile. The model raised this alert primarily because of a count of related addresses = 27, anonymised behavioural signal V258 = 2, C8 = 17 and C6 = 15. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3481063,
+    "probability": 0.9994,
+    "risk_band": "CRITICAL",
+    "amount": 44.27,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 337",
+      "anonymised behavioural signal V258 = 6",
+      "id_09 = 4",
+      "anonymised behavioural signal V45 = 4"
+    ],
+    "text": "ALERT 3481063 | risk CRITICAL (99.9%) | amount 44.27 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 337, anonymised behavioural signal V258 = 6, id_09 = 4 and anonymised behavioural signal V45 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3435414,
+    "probability": 0.9994,
+    "risk_band": "CRITICAL",
+    "amount": 25.27,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 117",
+      "anonymised behavioural signal V258 = 8",
+      "anonymised behavioural signal V45 = 12",
+      "C8 = 107"
+    ],
+    "text": "ALERT 3435414 | risk CRITICAL (99.9%) | amount 25.27 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of a count of related addresses = 117, anonymised behavioural signal V258 = 8, anonymised behavioural signal V45 = 12 and C8 = 107. Reducing the score: a count of distinct related entities = 11. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3499636,
+    "probability": 0.9994,
+    "risk_band": "CRITICAL",
+    "amount": 375.0,
+    "is_fraud": 1,
+    "drivers": [
+      "anonymised behavioural signal V258 = 7",
+      "a count of related addresses = 6",
+      "the recipient email domain = icloud.com",
+      "anonymised behavioural signal V156 = 2"
+    ],
+    "text": "ALERT 3499636 | risk CRITICAL (99.9%) | amount 375.00 Context: ProductCD=R, card4=visa, card6=credit, DeviceType=mobile. The model raised this alert primarily because of anonymised behavioural signal V258 = 7, a count of related addresses = 6, the recipient email domain = icloud.com and anonymised behavioural signal V156 = 2. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
     "transaction_id": 3452731,
-    "probability": 0.9997,
+    "probability": 0.9994,
     "risk_band": "CRITICAL",
     "amount": 29.76,
     "is_fraud": 1,
@@ -193,235 +375,95 @@
       "a count of related payment activity = 1",
       "C11 = 28"
     ],
-    "text": "ALERT 3452731 | risk CRITICAL (100.0%) | amount 29.76 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 32, anonymised behavioural signal V258 = 3, a count of related payment activity = 1 and C11 = 28. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3452731 | risk CRITICAL (99.9%) | amount 29.76 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 32, anonymised behavioural signal V258 = 3, a count of related payment activity = 1 and C11 = 28. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
-    "transaction_id": 3494143,
-    "probability": 0.9997,
+    "transaction_id": 3481125,
+    "probability": 0.9994,
     "risk_band": "CRITICAL",
-    "amount": 39.59,
+    "amount": 150.0,
     "is_fraud": 1,
     "drivers": [
-      "anonymised behavioural signal V258 = 10",
-      "a count of related addresses = 28",
-      "anonymised behavioural signal V87 = 12",
-      "anonymised behavioural signal V45 = 4"
-    ],
-    "text": "ALERT 3494143 | risk CRITICAL (100.0%) | amount 39.59 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 10, a count of related addresses = 28, anonymised behavioural signal V87 = 12 and anonymised behavioural signal V45 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3435419,
-    "probability": 0.9997,
-    "risk_band": "CRITICAL",
-    "amount": 25.27,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 8",
-      "a count of related addresses = 117",
-      "anonymised behavioural signal V45 = 12",
-      "the browser = mobile safari generic"
-    ],
-    "text": "ALERT 3435419 | risk CRITICAL (100.0%) | amount 25.27 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of anonymised behavioural signal V258 = 8, a count of related addresses = 117, anonymised behavioural signal V45 = 12 and the browser = mobile safari generic. Reducing the score: a count of distinct related entities = 11. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3475683,
-    "probability": 0.9997,
-    "risk_band": "CRITICAL",
-    "amount": 53.61,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 8",
-      "a count of related addresses = 7",
-      "a count of distinct related entities = 0",
-      "anonymised behavioural signal V87 = 8"
-    ],
-    "text": "ALERT 3475683 | risk CRITICAL (100.0%) | amount 53.61 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 8, a count of related addresses = 7, a count of distinct related entities = 0 and anonymised behavioural signal V87 = 8. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3481070,
-    "probability": 0.9997,
-    "risk_band": "CRITICAL",
-    "amount": 44.27,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 9",
-      "a count of related addresses = 339",
-      "id_09 = 4",
-      "anonymised behavioural signal V45 = 7"
-    ],
-    "text": "ALERT 3481070 | risk CRITICAL (100.0%) | amount 44.27 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 9, a count of related addresses = 339, id_09 = 4 and anonymised behavioural signal V45 = 7. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3468444,
-    "probability": 0.9996,
-    "risk_band": "CRITICAL",
-    "amount": 96.71,
-    "is_fraud": 1,
-    "drivers": [
-      "a count of related addresses = 15",
-      "anonymised behavioural signal V258 = 4",
-      "anonymised behavioural signal V45 = 6",
-      "C6 = 9"
-    ],
-    "text": "ALERT 3468444 | risk CRITICAL (100.0%) | amount 96.71 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 15, anonymised behavioural signal V258 = 4, anonymised behavioural signal V45 = 6 and C6 = 9. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3490488,
-    "probability": 0.9996,
-    "risk_band": "CRITICAL",
-    "amount": 175.96,
-    "is_fraud": 1,
-    "drivers": [
-      "a count of related addresses = 21",
-      "anonymised behavioural signal V258 = 11",
-      "anonymised behavioural signal V45 = 16",
+      "DeviceInfo = VS425PP Build/LMY47V",
+      "a count of related addresses = 8",
+      "a count of related payment activity = 0",
       "a count of distinct related entities = 0"
     ],
-    "text": "ALERT 3490488 | risk CRITICAL (100.0%) | amount 175.96 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 21, anonymised behavioural signal V258 = 11, anonymised behavioural signal V45 = 16 and a count of distinct related entities = 0. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3481125 | risk CRITICAL (99.9%) | amount 150.00 Context: ProductCD=H, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of DeviceInfo = VS425PP Build/LMY47V, a count of related addresses = 8, a count of related payment activity = 0 and a count of distinct related entities = 0. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
-    "transaction_id": 3496554,
-    "probability": 0.9996,
+    "transaction_id": 3479191,
+    "probability": 0.9994,
     "risk_band": "CRITICAL",
-    "amount": 19.55,
-    "is_fraud": 1,
-    "drivers": [
-      "a count of related addresses = 17",
-      "anonymised behavioural signal V258 = 15",
-      "anonymised behavioural signal V45 = 7",
-      "anonymised behavioural signal V187 = 6"
-    ],
-    "text": "ALERT 3496554 | risk CRITICAL (100.0%) | amount 19.55 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 17, anonymised behavioural signal V258 = 15, anonymised behavioural signal V45 = 7 and anonymised behavioural signal V187 = 6. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3457861,
-    "probability": 0.9996,
-    "risk_band": "CRITICAL",
-    "amount": 59.51,
-    "is_fraud": 1,
-    "drivers": [
-      "DeviceInfo = SM-G920P Build/NRD90M",
-      "a count of related addresses = 76",
-      "anonymised behavioural signal V258 = 2",
-      "C11 = 46"
-    ],
-    "text": "ALERT 3457861 | risk CRITICAL (100.0%) | amount 59.51 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=mobile. The model raised this alert primarily because of DeviceInfo = SM-G920P Build/NRD90M, a count of related addresses = 76, anonymised behavioural signal V258 = 2 and C11 = 46. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3494151,
-    "probability": 0.9996,
-    "risk_band": "CRITICAL",
-    "amount": 39.59,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 12",
-      "a count of related addresses = 30",
-      "anonymised behavioural signal V87 = 12",
-      "anonymised behavioural signal V45 = 4"
-    ],
-    "text": "ALERT 3494151 | risk CRITICAL (100.0%) | amount 39.59 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 12, a count of related addresses = 30, anonymised behavioural signal V87 = 12 and anonymised behavioural signal V45 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3475674,
-    "probability": 0.9996,
-    "risk_band": "CRITICAL",
-    "amount": 53.61,
+    "amount": 165.13,
     "is_fraud": 1,
     "drivers": [
       "anonymised behavioural signal V258 = 6",
       "a count of distinct related entities = 0",
-      "anonymised behavioural signal V87 = 6",
-      "anonymised behavioural signal V45 = 6"
+      "id_09 = 1",
+      "anonymised behavioural signal V187 = 3"
     ],
-    "text": "ALERT 3475674 | risk CRITICAL (100.0%) | amount 53.61 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 6, a count of distinct related entities = 0, anonymised behavioural signal V87 = 6 and anonymised behavioural signal V45 = 6. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3479191 | risk CRITICAL (99.9%) | amount 165.13 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 6, a count of distinct related entities = 0, id_09 = 1 and anonymised behavioural signal V187 = 3. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
-    "transaction_id": 3442345,
-    "probability": 0.9995,
+    "transaction_id": 3495845,
+    "probability": 0.9994,
     "risk_band": "CRITICAL",
-    "amount": 350.0,
+    "amount": 39.59,
     "is_fraud": 1,
     "drivers": [
-      "anonymised behavioural signal V258 = 3",
-      "the browser = chrome 58.0",
+      "a count of related addresses = 32",
       "a count of distinct related entities = 0",
-      "anonymised behavioural signal V156 = 3"
+      "C11 = 13",
+      "a count of related payment activity = 1"
     ],
-    "text": "ALERT 3442345 | risk CRITICAL (100.0%) | amount 350.00 Context: ProductCD=R, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 3, the browser = chrome 58.0, a count of distinct related entities = 0 and anonymised behavioural signal V156 = 3. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3495845 | risk CRITICAL (99.9%) | amount 39.59 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=mobile. The model raised this alert primarily because of a count of related addresses = 32, a count of distinct related entities = 0, C11 = 13 and a count of related payment activity = 1. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3488935,
+    "probability": 0.9994,
+    "risk_band": "CRITICAL",
+    "amount": 34.55,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 34",
+      "C11 = 32",
+      "anonymised behavioural signal V45 = 4",
+      "C8 = 21"
+    ],
+    "text": "ALERT 3488935 | risk CRITICAL (99.9%) | amount 34.55 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of a count of related addresses = 34, C11 = 32, anonymised behavioural signal V45 = 4 and C8 = 21. Reducing the score: the browser = chrome generic for android. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3494141,
+    "probability": 0.9993,
+    "risk_band": "CRITICAL",
+    "amount": 39.59,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 28",
+      "anonymised behavioural signal V258 = 9",
+      "a count of distinct related entities = 0",
+      "anonymised behavioural signal V45 = 4"
+    ],
+    "text": "ALERT 3494141 | risk CRITICAL (99.9%) | amount 39.59 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 28, anonymised behavioural signal V258 = 9, a count of distinct related entities = 0 and anonymised behavioural signal V45 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
     "transaction_id": 3442116,
-    "probability": 0.9995,
+    "probability": 0.9993,
     "risk_band": "CRITICAL",
     "amount": 83.86,
     "is_fraud": 1,
     "drivers": [
-      "anonymised behavioural signal V258 = 4",
       "a count of related addresses = 342",
-      "anonymised behavioural signal V87 = 4",
-      "anonymised behavioural signal V45 = 6"
+      "anonymised behavioural signal V258 = 4",
+      "anonymised behavioural signal V45 = 6",
+      "anonymised behavioural signal V87 = 4"
     ],
-    "text": "ALERT 3442116 | risk CRITICAL (100.0%) | amount 83.86 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 4, a count of related addresses = 342, anonymised behavioural signal V87 = 4 and anonymised behavioural signal V45 = 6. Reducing the score: a count of distinct related entities = 13. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3479505,
-    "probability": 0.9995,
-    "risk_band": "CRITICAL",
-    "amount": 106.48,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 10",
-      "a count of distinct related entities = 0",
-      "anonymised behavioural signal V45 = 4",
-      "a count of related addresses = 6"
-    ],
-    "text": "ALERT 3479505 | risk CRITICAL (100.0%) | amount 106.48 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 10, a count of distinct related entities = 0, anonymised behavioural signal V45 = 4 and a count of related addresses = 6. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3472050,
-    "probability": 0.9995,
-    "risk_band": "CRITICAL",
-    "amount": 33.26,
-    "is_fraud": 1,
-    "drivers": [
-      "a count of related addresses = 17",
-      "anonymised behavioural signal V258 = 6",
-      "anonymised behavioural signal V45 = 7",
-      "C6 = 10"
-    ],
-    "text": "ALERT 3472050 | risk CRITICAL (99.9%) | amount 33.26 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 17, anonymised behavioural signal V258 = 6, anonymised behavioural signal V45 = 7 and C6 = 10. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3494767,
-    "probability": 0.9995,
-    "risk_band": "CRITICAL",
-    "amount": 14.32,
-    "is_fraud": 1,
-    "drivers": [
-      "a count of related addresses = 36",
-      "anonymised behavioural signal V258 = 3",
-      "anonymised behavioural signal V87 = 4",
-      "anonymised behavioural signal V83 = 3"
-    ],
-    "text": "ALERT 3494767 | risk CRITICAL (99.9%) | amount 14.32 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 36, anonymised behavioural signal V258 = 3, anonymised behavioural signal V87 = 4 and anonymised behavioural signal V83 = 3. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3495059,
-    "probability": 0.9995,
-    "risk_band": "CRITICAL",
-    "amount": 14.32,
-    "is_fraud": 1,
-    "drivers": [
-      "a count of related addresses = 44",
-      "anonymised behavioural signal V258 = 17",
-      "anonymised behavioural signal V87 = 4",
-      "anonymised behavioural signal V83 = 3"
-    ],
-    "text": "ALERT 3495059 | risk CRITICAL (99.9%) | amount 14.32 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 44, anonymised behavioural signal V258 = 17, anonymised behavioural signal V87 = 4 and anonymised behavioural signal V83 = 3. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3442116 | risk CRITICAL (99.9%) | amount 83.86 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 342, anonymised behavioural signal V258 = 4, anonymised behavioural signal V45 = 6 and anonymised behavioural signal V87 = 4. Reducing the score: a count of distinct related entities = 13. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
     "transaction_id": 3435413,
-    "probability": 0.9995,
+    "probability": 0.9993,
     "risk_band": "CRITICAL",
     "amount": 25.27,
     "is_fraud": 1,
@@ -434,134 +476,8 @@
     "text": "ALERT 3435413 | risk CRITICAL (99.9%) | amount 25.27 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=mobile. The model raised this alert primarily because of a count of related addresses = 117, anonymised behavioural signal V258 = 7, anonymised behavioural signal V45 = 12 and C11 = 84. Reducing the score: a count of distinct related entities = 11. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
-    "transaction_id": 3495056,
-    "probability": 0.9995,
-    "risk_band": "CRITICAL",
-    "amount": 14.32,
-    "is_fraud": 1,
-    "drivers": [
-      "a count of related addresses = 44",
-      "anonymised behavioural signal V258 = 16",
-      "anonymised behavioural signal V87 = 4",
-      "anonymised behavioural signal V83 = 3"
-    ],
-    "text": "ALERT 3495056 | risk CRITICAL (99.9%) | amount 14.32 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 44, anonymised behavioural signal V258 = 16, anonymised behavioural signal V87 = 4 and anonymised behavioural signal V83 = 3. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3430672,
-    "probability": 0.9995,
-    "risk_band": "CRITICAL",
-    "amount": 400.0,
-    "is_fraud": 0,
-    "drivers": [
-      "anonymised behavioural signal V258 = 3",
-      "transaction amount = 400",
-      "DeviceInfo = SAMSUNG SM-J327T1 Build/NRD90M",
-      "a count of related addresses = 7"
-    ],
-    "text": "ALERT 3430672 | risk CRITICAL (99.9%) | amount 400.00 Context: ProductCD=H, card4=mastercard, card6=debit, DeviceType=mobile. The model raised this alert primarily because of anonymised behavioural signal V258 = 3, transaction amount = 400, DeviceInfo = SAMSUNG SM-J327T1 Build/NRD90M and a count of related addresses = 7. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3481063,
-    "probability": 0.9995,
-    "risk_band": "CRITICAL",
-    "amount": 44.27,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 6",
-      "a count of related addresses = 337",
-      "id_09 = 4",
-      "anonymised behavioural signal V45 = 4"
-    ],
-    "text": "ALERT 3481063 | risk CRITICAL (99.9%) | amount 44.27 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 6, a count of related addresses = 337, id_09 = 4 and anonymised behavioural signal V45 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3471985,
-    "probability": 0.9995,
-    "risk_band": "CRITICAL",
-    "amount": 45.93,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 4",
-      "a count of related addresses = 10",
-      "anonymised behavioural signal V45 = 4",
-      "anonymised behavioural signal V87 = 4"
-    ],
-    "text": "ALERT 3471985 | risk CRITICAL (99.9%) | amount 45.93 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 4, a count of related addresses = 10, anonymised behavioural signal V45 = 4 and anonymised behavioural signal V87 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3495038,
-    "probability": 0.9994,
-    "risk_band": "CRITICAL",
-    "amount": 14.32,
-    "is_fraud": 1,
-    "drivers": [
-      "a count of related addresses = 42",
-      "anonymised behavioural signal V258 = 14",
-      "anonymised behavioural signal V87 = 4",
-      "anonymised behavioural signal V83 = 3"
-    ],
-    "text": "ALERT 3495038 | risk CRITICAL (99.9%) | amount 14.32 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 42, anonymised behavioural signal V258 = 14, anonymised behavioural signal V87 = 4 and anonymised behavioural signal V83 = 3. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3494141,
-    "probability": 0.9994,
-    "risk_band": "CRITICAL",
-    "amount": 39.59,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 9",
-      "a count of related addresses = 28",
-      "anonymised behavioural signal V45 = 4",
-      "anonymised behavioural signal V87 = 12"
-    ],
-    "text": "ALERT 3494141 | risk CRITICAL (99.9%) | amount 39.59 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 9, a count of related addresses = 28, anonymised behavioural signal V45 = 4 and anonymised behavioural signal V87 = 12. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3494147,
-    "probability": 0.9994,
-    "risk_band": "CRITICAL",
-    "amount": 39.59,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 11",
-      "a count of related addresses = 29",
-      "anonymised behavioural signal V87 = 12",
-      "anonymised behavioural signal V45 = 4"
-    ],
-    "text": "ALERT 3494147 | risk CRITICAL (99.9%) | amount 39.59 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 11, a count of related addresses = 29, anonymised behavioural signal V87 = 12 and anonymised behavioural signal V45 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3477989,
-    "probability": 0.9994,
-    "risk_band": "CRITICAL",
-    "amount": 150.0,
-    "is_fraud": 1,
-    "drivers": [
-      "DeviceInfo = VS425PP Build/LMY47V",
-      "id_33 = 855x480",
-      "a count of distinct related entities = 0",
-      "a count of related addresses = 6"
-    ],
-    "text": "ALERT 3477989 | risk CRITICAL (99.9%) | amount 150.00 Context: ProductCD=H, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of DeviceInfo = VS425PP Build/LMY47V, id_33 = 855x480, a count of distinct related entities = 0 and a count of related addresses = 6. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3475670,
-    "probability": 0.9994,
-    "risk_band": "CRITICAL",
-    "amount": 53.61,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 5",
-      "a count of distinct related entities = 0",
-      "anonymised behavioural signal V45 = 5",
-      "anonymised behavioural signal V87 = 5"
-    ],
-    "text": "ALERT 3475670 | risk CRITICAL (99.9%) | amount 53.61 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 5, a count of distinct related entities = 0, anonymised behavioural signal V45 = 5 and anonymised behavioural signal V87 = 5. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
     "transaction_id": 3479238,
-    "probability": 0.9994,
+    "probability": 0.9993,
     "risk_band": "CRITICAL",
     "amount": 58.65,
     "is_fraud": 1,
@@ -569,134 +485,218 @@
       "anonymised behavioural signal V258 = 9",
       "a count of distinct related entities = 0",
       "anonymised behavioural signal V45 = 6",
-      "anonymised behavioural signal V87 = 5"
+      "a count of related addresses = 5"
     ],
-    "text": "ALERT 3479238 | risk CRITICAL (99.9%) | amount 58.65 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 9, a count of distinct related entities = 0, anonymised behavioural signal V45 = 6 and anonymised behavioural signal V87 = 5. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3479238 | risk CRITICAL (99.9%) | amount 58.65 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 9, a count of distinct related entities = 0, anonymised behavioural signal V45 = 6 and a count of related addresses = 5. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
-    "transaction_id": 3499707,
-    "probability": 0.9994,
+    "transaction_id": 3463047,
+    "probability": 0.9993,
+    "risk_band": "CRITICAL",
+    "amount": 14.39,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 216",
+      "anonymised behavioural signal V45 = 5",
+      "anonymised behavioural signal V258 = 2",
+      "DeviceInfo = Moto G (4) Build/NPJS25.93-14-13"
+    ],
+    "text": "ALERT 3463047 | risk CRITICAL (99.9%) | amount 14.39 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 216, anonymised behavioural signal V45 = 5, anonymised behavioural signal V258 = 2 and DeviceInfo = Moto G (4) Build/NPJS25.93-14-13. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3499605,
+    "probability": 0.9992,
+    "risk_band": "CRITICAL",
+    "amount": 99.72,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 125",
+      "anonymised behavioural signal V258 = 7",
+      "anonymised behavioural signal V87 = 6",
+      "C11 = 89"
+    ],
+    "text": "ALERT 3499605 | risk CRITICAL (99.9%) | amount 99.72 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=mobile. The model raised this alert primarily because of a count of related addresses = 125, anonymised behavioural signal V258 = 7, anonymised behavioural signal V87 = 6 and C11 = 89. Reducing the score: a count of distinct related entities = 11. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3468450,
+    "probability": 0.9992,
+    "risk_band": "CRITICAL",
+    "amount": 96.71,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 15",
+      "anonymised behavioural signal V258 = 5",
+      "anonymised behavioural signal V45 = 6",
+      "C8 = 6"
+    ],
+    "text": "ALERT 3468450 | risk CRITICAL (99.9%) | amount 96.71 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 15, anonymised behavioural signal V258 = 5, anonymised behavioural signal V45 = 6 and C8 = 6. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3496554,
+    "probability": 0.9992,
     "risk_band": "CRITICAL",
     "amount": 19.55,
     "is_fraud": 1,
     "drivers": [
-      "a count of related addresses = 25",
-      "anonymised behavioural signal V258 = 19",
-      "anonymised behavioural signal V87 = 5",
-      "C6 = 9"
+      "a count of related addresses = 17",
+      "anonymised behavioural signal V258 = 15",
+      "anonymised behavioural signal V45 = 7",
+      "C11 = 17"
     ],
-    "text": "ALERT 3499707 | risk CRITICAL (99.9%) | amount 19.55 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 25, anonymised behavioural signal V258 = 19, anonymised behavioural signal V87 = 5 and C6 = 9. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3440420,
-    "probability": 0.9994,
-    "risk_band": "CRITICAL",
-    "amount": 6.58,
-    "is_fraud": 1,
-    "drivers": [
-      "a count of related addresses = 22",
-      "anonymised behavioural signal V258 = 4",
-      "anonymised behavioural signal V87 = 4",
-      "anonymised behavioural signal V45 = 4"
-    ],
-    "text": "ALERT 3440420 | risk CRITICAL (99.9%) | amount 6.58 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=mobile. The model raised this alert primarily because of a count of related addresses = 22, anonymised behavioural signal V258 = 4, anonymised behavioural signal V87 = 4 and anonymised behavioural signal V45 = 4. Reducing the score: the browser = chrome 65.0 for android. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3481065,
-    "probability": 0.9994,
-    "risk_band": "CRITICAL",
-    "amount": 44.27,
-    "is_fraud": 1,
-    "drivers": [
-      "anonymised behavioural signal V258 = 7",
-      "a count of related addresses = 337",
-      "id_09 = 4",
-      "anonymised behavioural signal V45 = 4"
-    ],
-    "text": "ALERT 3481065 | risk CRITICAL (99.9%) | amount 44.27 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 7, a count of related addresses = 337, id_09 = 4 and anonymised behavioural signal V45 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
-  },
-  {
-    "transaction_id": 3444464,
-    "probability": 0.9994,
-    "risk_band": "CRITICAL",
-    "amount": 104.39,
-    "is_fraud": 1,
-    "drivers": [
-      "a count of related addresses = 51",
-      "DeviceInfo = Moto G (4) Build/NPJS25.93-14-10",
-      "anonymised behavioural signal V87 = 4",
-      "C11 = 33"
-    ],
-    "text": "ALERT 3444464 | risk CRITICAL (99.9%) | amount 104.39 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 51, DeviceInfo = Moto G (4) Build/NPJS25.93-14-10, anonymised behavioural signal V87 = 4 and C11 = 33. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3496554 | risk CRITICAL (99.9%) | amount 19.55 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 17, anonymised behavioural signal V258 = 15, anonymised behavioural signal V45 = 7 and C11 = 17. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
     "transaction_id": 3471986,
-    "probability": 0.9994,
+    "probability": 0.9992,
     "risk_band": "CRITICAL",
     "amount": 45.93,
     "is_fraud": 1,
     "drivers": [
-      "anonymised behavioural signal V258 = 5",
       "a count of related addresses = 10",
-      "anonymised behavioural signal V87 = 5",
-      "anonymised behavioural signal V45 = 5"
+      "anonymised behavioural signal V258 = 5",
+      "anonymised behavioural signal V45 = 5",
+      "C11 = 7"
     ],
-    "text": "ALERT 3471986 | risk CRITICAL (99.9%) | amount 45.93 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 5, a count of related addresses = 10, anonymised behavioural signal V87 = 5 and anonymised behavioural signal V45 = 5. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3471986 | risk CRITICAL (99.9%) | amount 45.93 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 10, anonymised behavioural signal V258 = 5, anonymised behavioural signal V45 = 5 and C11 = 7. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
-    "transaction_id": 3499650,
-    "probability": 0.9994,
+    "transaction_id": 3442345,
+    "probability": 0.9992,
+    "risk_band": "CRITICAL",
+    "amount": 350.0,
+    "is_fraud": 1,
+    "drivers": [
+      "anonymised behavioural signal V258 = 3",
+      "a count of distinct related entities = 0",
+      "anonymised behavioural signal V156 = 3",
+      "the browser = chrome 58.0"
+    ],
+    "text": "ALERT 3442345 | risk CRITICAL (99.9%) | amount 350.00 Context: ProductCD=R, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 3, a count of distinct related entities = 0, anonymised behavioural signal V156 = 3 and the browser = chrome 58.0. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3457861,
+    "probability": 0.9992,
+    "risk_band": "CRITICAL",
+    "amount": 59.51,
+    "is_fraud": 1,
+    "drivers": [
+      "DeviceInfo = SM-G920P Build/NRD90M",
+      "a count of related addresses = 76",
+      "anonymised behavioural signal V258 = 2",
+      "C11 = 46"
+    ],
+    "text": "ALERT 3457861 | risk CRITICAL (99.9%) | amount 59.51 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=mobile. The model raised this alert primarily because of DeviceInfo = SM-G920P Build/NRD90M, a count of related addresses = 76, anonymised behavioural signal V258 = 2 and C11 = 46. Reducing the score: the browser = chrome 65.0 for android. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3499637,
+    "probability": 0.9991,
     "risk_band": "CRITICAL",
     "amount": 375.0,
     "is_fraud": 1,
     "drivers": [
-      "anonymised behavioural signal V258 = 8",
-      "a count of related addresses = 7",
-      "a count of related payment activity = 0",
-      "anonymised behavioural signal V156 = 3"
+      "anonymised behavioural signal V258 = 7",
+      "a count of related addresses = 6",
+      "the recipient email domain = icloud.com",
+      "anonymised behavioural signal V156 = 2"
     ],
-    "text": "ALERT 3499650 | risk CRITICAL (99.9%) | amount 375.00 Context: ProductCD=R, card4=mastercard, card6=debit, DeviceType=mobile. The model raised this alert primarily because of anonymised behavioural signal V258 = 8, a count of related addresses = 7, a count of related payment activity = 0 and anonymised behavioural signal V156 = 3. Reducing the score: id_30 = iOS 11.3.0. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3499637 | risk CRITICAL (99.9%) | amount 375.00 Context: ProductCD=R, card4=visa, card6=credit, DeviceType=mobile. The model raised this alert primarily because of anonymised behavioural signal V258 = 7, a count of related addresses = 6, the recipient email domain = icloud.com and anonymised behavioural signal V156 = 2. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
-    "transaction_id": 3481060,
-    "probability": 0.9994,
+    "transaction_id": 3499667,
+    "probability": 0.9991,
     "risk_band": "CRITICAL",
-    "amount": 44.27,
+    "amount": 39.1,
     "is_fraud": 1,
     "drivers": [
-      "anonymised behavioural signal V258 = 6",
-      "a count of related addresses = 337",
-      "id_09 = 4",
-      "id_03 = 4"
+      "a count of related addresses = 19",
+      "anonymised behavioural signal V258 = 17",
+      "C11 = 19",
+      "C8 = 14"
     ],
-    "text": "ALERT 3481060 | risk CRITICAL (99.9%) | amount 44.27 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of anonymised behavioural signal V258 = 6, a count of related addresses = 337, id_09 = 4 and id_03 = 4. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3499667 | risk CRITICAL (99.9%) | amount 39.10 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 19, anonymised behavioural signal V258 = 17, C11 = 19 and C8 = 14. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
-    "transaction_id": 3494175,
-    "probability": 0.9994,
+    "transaction_id": 3497974,
+    "probability": 0.9991,
     "risk_band": "CRITICAL",
-    "amount": 39.59,
+    "amount": 30.62,
     "is_fraud": 1,
     "drivers": [
-      "a count of related addresses = 31",
+      "a count of related addresses = 343",
       "anonymised behavioural signal V258 = 13",
-      "anonymised behavioural signal V45 = 4",
-      "a count of distinct related entities = 0"
+      "anonymised behavioural signal V45 = 13",
+      "C11 = 147"
     ],
-    "text": "ALERT 3494175 | risk CRITICAL (99.9%) | amount 39.59 Context: ProductCD=C, card4=visa, card6=credit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 31, anonymised behavioural signal V258 = 13, anonymised behavioural signal V45 = 4 and a count of distinct related entities = 0. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3497974 | risk CRITICAL (99.9%) | amount 30.62 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 343, anonymised behavioural signal V258 = 13, anonymised behavioural signal V45 = 13 and C11 = 147. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   },
   {
-    "transaction_id": 3428031,
-    "probability": 0.9993,
+    "transaction_id": 3435419,
+    "probability": 0.9991,
     "risk_band": "CRITICAL",
-    "amount": 400.0,
-    "is_fraud": 0,
+    "amount": 25.27,
+    "is_fraud": 1,
     "drivers": [
-      "transaction amount = 400",
-      "anonymised behavioural signal V258 = 2",
-      "DeviceInfo = SAMSUNG SM-J327T1 Build/NRD90M",
-      "id_33 = 1280x720"
+      "a count of related addresses = 117",
+      "anonymised behavioural signal V258 = 8",
+      "anonymised behavioural signal V45 = 12",
+      "C8 = 107"
     ],
-    "text": "ALERT 3428031 | risk CRITICAL (99.9%) | amount 400.00 Context: ProductCD=H, card4=mastercard, card6=debit, DeviceType=mobile. The model raised this alert primarily because of transaction amount = 400, anonymised behavioural signal V258 = 2, DeviceInfo = SAMSUNG SM-J327T1 Build/NRD90M and id_33 = 1280x720. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+    "text": "ALERT 3435419 | risk CRITICAL (99.9%) | amount 25.27 Context: ProductCD=C, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of a count of related addresses = 117, anonymised behavioural signal V258 = 8, anonymised behavioural signal V45 = 12 and C8 = 107. Reducing the score: a count of distinct related entities = 11. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3477989,
+    "probability": 0.9991,
+    "risk_band": "CRITICAL",
+    "amount": 150.0,
+    "is_fraud": 1,
+    "drivers": [
+      "DeviceInfo = VS425PP Build/LMY47V",
+      "a count of distinct related entities = 0",
+      "id_33 = 855x480",
+      "a count of related addresses = 6"
+    ],
+    "text": "ALERT 3477989 | risk CRITICAL (99.9%) | amount 150.00 Context: ProductCD=H, card4=visa, card6=debit, DeviceType=mobile. The model raised this alert primarily because of DeviceInfo = VS425PP Build/LMY47V, a count of distinct related entities = 0, id_33 = 855x480 and a count of related addresses = 6. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3499604,
+    "probability": 0.999,
+    "risk_band": "CRITICAL",
+    "amount": 99.72,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 124",
+      "anonymised behavioural signal V258 = 6",
+      "anonymised behavioural signal V87 = 5",
+      "C11 = 89"
+    ],
+    "text": "ALERT 3499604 | risk CRITICAL (99.9%) | amount 99.72 Context: ProductCD=C, card4=mastercard, card6=credit, DeviceType=mobile. The model raised this alert primarily because of a count of related addresses = 124, anonymised behavioural signal V258 = 6, anonymised behavioural signal V87 = 5 and C11 = 89. Reducing the score: a count of distinct related entities = 11. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3477274,
+    "probability": 0.999,
+    "risk_band": "CRITICAL",
+    "amount": 111.28,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 18",
+      "anonymised behavioural signal V258 = 7",
+      "C8 = 6",
+      "anonymised behavioural signal V187 = 6"
+    ],
+    "text": "ALERT 3477274 | risk CRITICAL (99.9%) | amount 111.28 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=desktop. The model raised this alert primarily because of a count of related addresses = 18, anonymised behavioural signal V258 = 7, C8 = 6 and anonymised behavioural signal V187 = 6. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
+  },
+  {
+    "transaction_id": 3499607,
+    "probability": 0.999,
+    "risk_band": "CRITICAL",
+    "amount": 99.72,
+    "is_fraud": 1,
+    "drivers": [
+      "a count of related addresses = 126",
+      "anonymised behavioural signal V258 = 8",
+      "anonymised behavioural signal V87 = 7",
+      "C11 = 89"
+    ],
+    "text": "ALERT 3499607 | risk CRITICAL (99.9%) | amount 99.72 Context: ProductCD=C, card4=mastercard, card6=debit, DeviceType=mobile. The model raised this alert primarily because of a count of related addresses = 126, anonymised behavioural signal V258 = 8, anonymised behavioural signal V87 = 7 and C11 = 89. Reducing the score: a count of distinct related entities = 11. Recommended action: decline and contact the cardholder immediately. [machine-generated from model output; not an analyst write-up]"
   }
 ]

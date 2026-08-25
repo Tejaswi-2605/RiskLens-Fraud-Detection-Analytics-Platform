@@ -28,20 +28,48 @@ Written stage by stage as the project is built. This is the study document.
 
 ## Documentation index
 
-Each stage has a **detailed teaching doc** in `docs/` (every term defined, with
-tiny worked examples and interview Q&A). This log is the summary index.
+Each stage has a **detailed teaching doc** in `docs/`: every term defined in
+plain language, a tiny worked example for each, the alternatives that were
+rejected and why, and interview Q&A. This log is the summary index.
 
-| Stage | Detailed doc | Notebook |
+| Stage | Detailed doc | What it covers |
 | --- | --- | --- |
-| 0-1 | [docs/stage01_ingestion.md](docs/stage01_ingestion.md) | [01_ingestion_eda_split.ipynb](notebooks/01_ingestion_eda_split.ipynb) |
-| 2-3 | [docs/stage02_03_eda_and_split.md](docs/stage02_03_eda_and_split.md) | same notebook |
+| 0-1 | [stage01_ingestion.md](docs/stage01_ingestion.md) | joins, fan-out, dtypes, mantissa, Parquet, data contracts, chargeback label lag |
+| 2-3 | [stage02_03_eda_and_split.md](docs/stage02_03_eda_and_split.md) | temporal split, embargo, Cramer's V, Cliff's delta, Mann-Whitney, PSI, confounders |
+| 3b-5 | [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) | frequency encoding, boosting, SMOTE vs weighting, PR-AUC, cost-optimal thresholds |
+| **3c** | [stage03c_entity_features.md](docs/stage03c_entity_features.md) | **entity linkage, causal vs transductive aggregation, the memorisation trap** |
+| 6-7 | [stage06_07_unsupervised_and_shap.md](docs/stage06_07_unsupervised_and_shap.md) | Isolation Forest, K-Means typologies, Shapley values, leakage audit |
+| 8-9 | [stage08_09_genai.md](docs/stage08_09_genai.md) | embeddings, cosine similarity, FAISS, RAG, hallucination, agents |
+| 10 | [stage10_deployment.md](docs/stage10_deployment.md) | training/serving skew, dtype codes, FastAPI, Streamlit caching |
 
-Notebooks are **generated and executed** by `scripts/build_notebooks.py`, so
-their outputs are real results, never pasted text. Rebuild any time:
+### Notebooks
+
+| Notebook | Contents |
+| --- | --- |
+| [01_ingestion_eda_split.ipynb](notebooks/01_ingestion_eda_split.ipynb) | ingestion provenance, class balance, temporal split, missingness, statistics, drift |
+| [02_modelling_evaluation.ipynb](notebooks/02_modelling_evaluation.ipynb) | features, baseline vs XGBoost, operating points, risk engine, SHAP |
+
+Both are **generated and executed** by `scripts/build_notebooks.py` and
+`scripts/build_notebook_02.py`, so their outputs are real results rather than
+pasted text. Rebuild any time:
 
 ```
 python scripts/build_notebooks.py
+python scripts/build_notebook_02.py
 ```
+
+### Reproducing everything
+
+```
+python scripts/run_ingest.py           # Stage 1
+python scripts/run_eda.py              # Stages 2-3
+python scripts/run_train.py --fast     # Stages 3b-4  (~30 min)
+python scripts/run_all_downstream.py   # Stages 5-10 + notebooks + this log
+```
+
+`run_all_downstream.py` runs every stage that depends on a freshly trained
+model, in dependency order, and stops on the first failure rather than write
+artefacts that disagree with each other.
 
 **Time-box:** built in one day as a working vertical slice. Depth and study happen afterwards using this log.
 
@@ -550,7 +578,7 @@ good compared to **what**?
 | Model | PR-AUC | Lift over random | ROC-AUC | Brier |
 | --- | --- | --- | --- | --- |
 | Logistic Regression (baseline) | **0.3137** | 9.0x | 0.8370 | 0.13695 |
-| **XGBoost** | **0.5233** | 15.1x | 0.9053 | 0.05574 |
+| **XGBoost** | **0.5574** | 16.1x | 0.9106 | 0.04452 |
 
 Random baseline PR-AUC = the base rate = **0.0347**.
 Reporting PR-AUC as a *lift* matters because 0.31 means nothing on its own.
@@ -627,12 +655,12 @@ threshold is suboptimal and why banks think in *expected loss*.
 | | Value |
 | --- | --- |
 | Do nothing (all fraud gets through) | 396,914 |
-| RiskLens at the cost-optimal threshold | 221,422 |
-| **Net saving** | **175,491** (44.2% of fraud loss avoided) |
-| Chosen threshold | 0.4548 |
-| Precision / Recall | 27.4% / 69.8% |
-| Alert rate | 8.84% |
-| Fraud caught / missed | 1,770 / 766 |
+| RiskLens at the cost-optimal threshold | 199,752 |
+| **Net saving** | **197,162** (49.7% of fraud loss avoided) |
+| Chosen threshold | 0.4198 |
+| Precision / Recall | 31.0% / 70.0% |
+| Alert rate | 7.83% |
+| Fraud caught / missed | 1,775 / 761 |
 
 **This is what makes RiskLens a risk system rather than a classification
 exercise:** the deliverable is a number in currency, not a metric.
@@ -686,16 +714,16 @@ has 2, so `card1` gets thousands more chances to split). SHAP has no such bias.
 
 | Feature | mean abs SHAP |
 | --- | --- |
-| `C13` | 0.2365 |
-| `TransactionAmt` | 0.2196 |
-| `C14` | 0.2041 |
-| `V70` | 0.1929 |
-| `card6` | 0.1906 |
-| `P_emaildomain` | 0.1804 |
-| `C1` | 0.1544 |
-| `card1_freq` | 0.1503 |
-| `C11` | 0.1271 |
-| `V258` | 0.1266 |
+| `C13` | 0.1975 |
+| `C14` | 0.1872 |
+| `card6` | 0.1836 |
+| `V70` | 0.1810 |
+| `C1` | 0.1793 |
+| `P_emaildomain` | 0.1779 |
+| `TransactionAmt` | 0.1769 |
+| `V294` | 0.1411 |
+| `C5` | 0.1331 |
+| `C11` | 0.1290 |
 
 
 ### The leakage audit
@@ -707,7 +735,7 @@ answer, the split, or the time period.
 
 **Verdict:** healthy - importance is spread across many features, which is what genuine fraud signal looks like
 Top feature `C13` holds
-8.4% of total SHAP magnitude.
+7.2% of total SHAP magnitude.
 
 ## Stage 6 — Unsupervised: what I implemented and WHY
 
@@ -843,8 +871,8 @@ same answer.
 | --- | --- | --- | --- |
 | What action is required for a HIGH risk band transaction a... | 01_risk_scoring_and_decisions.md, 04_acc | 0.824 | well grounded |
 | How should decision thresholds be set, and why is maximisi... | 01_risk_scoring_and_decisions.md | 0.789 | well grounded |
-| What is the label maturity window and why does it matter f... | 03_chargebacks_and_labels.md, 06_model_g | 0.919 | well grounded |
-| What are the primary indicators of account takeover?... | 04_account_takeover.md, README.md | 0.982 | well grounded |
+| What is the label maturity window and why does it matter f... | 03_chargebacks_and_labels.md, 06_model_g | 0.893 | well grounded |
+| What are the primary indicators of account takeover?... | 04_account_takeover.md, README.md | 0.971 | well grounded |
 | What is the capital of France?... | 03_chargebacks_and_labels.md, 06_model_g | 1.0 | correct refusal - the model de |
 
 

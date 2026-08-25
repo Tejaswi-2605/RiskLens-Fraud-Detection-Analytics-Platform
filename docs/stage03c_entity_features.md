@@ -233,6 +233,103 @@ small, rapid purchases to verify a stolen card is live.
 
 ---
 
+---
+
+# ⭐ The result — and the mistake I made getting there
+
+## The three-way comparison
+
+I ran the model three ways. The comparison **is** the finding.
+
+| Configuration | Val PR-AUC | Fraud loss avoided | Verdict |
+|---|---|---|---|
+| No entity features | 0.5232 | 37.4% | the baseline |
+| **+ behavioural aggregates** | **0.5574** | **49.7%** | ✅ **the honest number** |
+| + raw entity IDs (`uid`, `uid2`) | 0.6577 | — | ❌ inflated, and unshippable |
+
+## What went wrong
+
+My first version passed the raw `uid` and `uid2` **categoricals** to the model,
+not just the aggregates built from them. PR-AUC jumped to **0.6577 — a 26%
+gain**, and I nearly reported it.
+
+**Two things made me suspicious:**
+
+**1. The round-0 score.** A single tree is one split:
+
+```
+round 0, no entity features   0.2835
+round 0, + aggregates         0.2671
+round 0, + raw entity IDs     0.4235   ← one split reached 0.42
+```
+
+Behaviour has to accumulate across many trees. **Identity lookup pays off on
+the first one.** That signature is memorisation.
+
+**2. It crashed.**
+
+```
+xgboost/training.py → bst.copy() → __getstate__()
+XGBoostError: bad allocation
+```
+
+Every tree node splitting on `uid` stores a bitset over **217,850 categories**
+— roughly 27 KB *per split node*. Across 300 trees the model became too large
+to serialise. **You cannot deploy a model you cannot save.**
+
+## Why memorising entities is rewarded here
+
+The dataset's labelling rule propagates fraud **forward** across transactions
+linked by card, email or billing address. So "this entity was defrauded before"
+is *mechanically* predictive of "this entity is labelled fraud now."
+
+The model isn't detecting fraud. It's **rediscovering the labelling rule**.
+
+**It isn't pure leakage** — in production you do see repeat customers, and
+blocklisting a previously compromised card is legitimate. But it inflates the
+offline number relative to performance on **new** customers, which is what you
+actually need.
+
+## A second hypothesis I got wrong
+
+The honest gain was smaller than I expected, so I guessed *"the `C1`–`C14`
+columns are documented as counts of related addresses and entities, so mine
+are redundant."*
+
+**I measured it instead of asserting it:**
+
+```
+median max-correlation between my 15 features and any C column:  0.030
+```
+
+**Essentially zero.** Every feature carries genuinely new information. My
+explanation was wrong.
+
+**The real reason** is visible in the data: **2.7 transactions per entity** on
+average, and the prior-statistics are only **63% non-null**. There is very
+little history to aggregate over.
+
+> That's a better diagnosis than my guess, and it has a clear implication:
+> **with a longer transaction history these features would be considerably
+> stronger.** Which is exactly the situation a real bank is in.
+
+## What I would say about this
+
+> *"Entity features looked like a 26% improvement. Isolating the two mechanisms
+> showed about 6.5% came from behavioural signal — velocity, running spend,
+> burst counts — and the rest from the model memorising which of 217,850
+> customers had previously been defrauded. This dataset propagates fraud labels
+> across linked cards and addresses, so that memorisation is rewarded offline
+> and would collapse on new customers. It also made the model too large to
+> serialise. I dropped the raw IDs and quote 0.5574."*
+>
+> *"The behavioural gain looked modest, so I checked whether it was redundant
+> with Vesta's existing count columns. Correlation was 0.03 — it wasn't. The
+> real constraint is that entities average 2.7 transactions here, so there is
+> almost no history to aggregate. With a longer window these features would do
+> considerably more."*
+
+
 # Interview Q&A
 
 ### Q1. What was the single biggest improvement you made, and why did it work?

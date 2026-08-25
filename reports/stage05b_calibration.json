@@ -1,254 +1,254 @@
 {
   "calibration": {
     "method": "sigmoid",
-    "brier_before": 0.057471,
-    "brier_after": 0.022325,
-    "improvement_pct": 61.15,
-    "ece_before": 0.13428,
-    "ece_after": 0.00813,
-    "max_prob_before": 0.9999,
-    "max_prob_after": 0.77352,
+    "brier_before": 0.044785,
+    "brier_after": 0.020919,
+    "improvement_pct": 53.29,
+    "ece_before": 0.10701,
+    "ece_after": 0.00667,
+    "max_prob_before": 0.99992,
+    "max_prob_after": 0.82769,
     "n_calibration": 36548
   },
   "per_method": {
     "isotonic": {
-      "brier": 0.021593249854307116,
-      "ece": 0.00786248965192719,
-      "distinct_values": 90,
+      "brier": 0.02046542410463692,
+      "ece": 0.0061284981757800915,
+      "distinct_values": 77,
       "inversions": 0
     },
     "sigmoid": {
-      "brier": 0.02232518716230534,
-      "ece": 0.008134454658905804,
-      "distinct_values": 36490,
+      "brier": 0.020919414412707414,
+      "ece": 0.0066736397508189715,
+      "distinct_values": 36511,
       "inversions": 0
     },
     "_selection": {
       "chosen": "sigmoid",
-      "reason": "isotonic beats Platt on Brier by only 3.3%, under the 10% margin. Platt is strictly monotonic so it preserves every distinct score and every achievable alert budget - the better trade here"
+      "reason": "isotonic beats Platt on Brier by only 2.2%, under the 10% margin. Platt is strictly monotonic so it preserves every distinct score and every achievable alert budget - the better trade here"
     }
   },
   "reliability_before": [
     {
       "bin": 0,
       "n": 3655,
-      "mean_predicted": 0.00872,
-      "observed_rate": 0.00274,
-      "gap": 0.00598
+      "mean_predicted": 0.00692,
+      "observed_rate": 0.00164,
+      "gap": 0.00528
     },
     {
       "bin": 1,
       "n": 3655,
-      "mean_predicted": 0.02172,
-      "observed_rate": 0.00109,
-      "gap": 0.02063
+      "mean_predicted": 0.01682,
+      "observed_rate": 0.00246,
+      "gap": 0.01436
     },
     {
       "bin": 2,
       "n": 3655,
-      "mean_predicted": 0.03676,
-      "observed_rate": 0.0041,
-      "gap": 0.03265
+      "mean_predicted": 0.02802,
+      "observed_rate": 0.00492,
+      "gap": 0.0231
     },
     {
       "bin": 3,
       "n": 3654,
-      "mean_predicted": 0.05513,
-      "observed_rate": 0.00465,
-      "gap": 0.05048
+      "mean_predicted": 0.04193,
+      "observed_rate": 0.00438,
+      "gap": 0.03755
     },
     {
       "bin": 4,
       "n": 3655,
-      "mean_predicted": 0.07816,
+      "mean_predicted": 0.05994,
       "observed_rate": 0.00575,
-      "gap": 0.07242
+      "gap": 0.0542
     },
     {
       "bin": 5,
       "n": 3655,
-      "mean_predicted": 0.10896,
-      "observed_rate": 0.00602,
-      "gap": 0.10294
+      "mean_predicted": 0.08379,
+      "observed_rate": 0.00766,
+      "gap": 0.07613
     },
     {
       "bin": 6,
       "n": 3654,
-      "mean_predicted": 0.15086,
-      "observed_rate": 0.01232,
-      "gap": 0.13855
+      "mean_predicted": 0.11689,
+      "observed_rate": 0.01067,
+      "gap": 0.10621
     },
     {
       "bin": 7,
       "n": 3655,
-      "mean_predicted": 0.21454,
-      "observed_rate": 0.02052,
-      "gap": 0.19402
+      "mean_predicted": 0.17005,
+      "observed_rate": 0.01669,
+      "gap": 0.15336
     },
     {
       "bin": 8,
       "n": 3655,
-      "mean_predicted": 0.32986,
-      "observed_rate": 0.03694,
-      "gap": 0.29293
+      "mean_predicted": 0.26848,
+      "observed_rate": 0.03365,
+      "gap": 0.23482
     },
     {
       "bin": 9,
       "n": 3655,
-      "mean_predicted": 0.65598,
-      "observed_rate": 0.2238,
-      "gap": 0.43218
+      "mean_predicted": 0.5951,
+      "observed_rate": 0.2301,
+      "gap": 0.36501
     }
   ],
   "reliability_after": [
     {
       "bin": 0,
       "n": 3655,
-      "mean_predicted": 0.00396,
-      "observed_rate": 0.00274,
-      "gap": 0.00123
+      "mean_predicted": 0.00442,
+      "observed_rate": 0.00164,
+      "gap": 0.00278
     },
     {
       "bin": 1,
       "n": 3655,
-      "mean_predicted": 0.00433,
-      "observed_rate": 0.00109,
-      "gap": 0.00323
+      "mean_predicted": 0.00474,
+      "observed_rate": 0.00246,
+      "gap": 0.00228
     },
     {
       "bin": 2,
       "n": 3655,
-      "mean_predicted": 0.00479,
-      "observed_rate": 0.0041,
-      "gap": 0.00069
+      "mean_predicted": 0.00513,
+      "observed_rate": 0.00492,
+      "gap": 0.0002
     },
     {
       "bin": 3,
       "n": 3654,
-      "mean_predicted": 0.00543,
-      "observed_rate": 0.00465,
-      "gap": 0.00078
+      "mean_predicted": 0.00565,
+      "observed_rate": 0.00438,
+      "gap": 0.00127
     },
     {
       "bin": 4,
       "n": 3655,
-      "mean_predicted": 0.00635,
+      "mean_predicted": 0.00641,
       "observed_rate": 0.00575,
-      "gap": 0.00061
+      "gap": 0.00067
     },
     {
       "bin": 5,
       "n": 3655,
-      "mean_predicted": 0.00783,
-      "observed_rate": 0.00602,
-      "gap": 0.00181
+      "mean_predicted": 0.00758,
+      "observed_rate": 0.00766,
+      "gap": -8e-05
     },
     {
       "bin": 6,
       "n": 3654,
-      "mean_predicted": 0.01042,
-      "observed_rate": 0.01232,
-      "gap": -0.0019
+      "mean_predicted": 0.00956,
+      "observed_rate": 0.01067,
+      "gap": -0.00111
     },
     {
       "bin": 7,
       "n": 3655,
-      "mean_predicted": 0.01611,
-      "observed_rate": 0.02052,
-      "gap": -0.00441
+      "mean_predicted": 0.01392,
+      "observed_rate": 0.01669,
+      "gap": -0.00277
     },
     {
       "bin": 8,
       "n": 3655,
-      "mean_predicted": 0.03603,
-      "observed_rate": 0.03694,
-      "gap": -0.00091
+      "mean_predicted": 0.02832,
+      "observed_rate": 0.03365,
+      "gap": -0.00533
     },
     {
       "bin": 9,
       "n": 3655,
-      "mean_predicted": 0.2914,
-      "observed_rate": 0.2238,
-      "gap": 0.0676
+      "mean_predicted": 0.2766,
+      "observed_rate": 0.2301,
+      "gap": 0.04651
     }
   ],
   "ranking_preserved": {
     "strict_inversions": 0,
-    "pr_auc_raw": 0.51498,
-    "pr_auc_calibrated": 0.51498,
+    "pr_auc_raw": 0.5433,
+    "pr_auc_calibrated": 0.5433,
     "note": "PR-AUC can move under isotonic because of TIES, not reordering. Inversions is the correct test.",
     "passed": true
   },
   "risk_engine_raw": {
-    "threshold": 0.512433,
-    "fraud_caught_value": 100528.32,
-    "recovered": 90475.48,
-    "unrecovered_on_caught": 10052.83,
-    "fraud_missed_value": 64452.08,
-    "false_positive_count": 1921,
-    "false_positive_cost": 28815.0,
-    "net_cost": 103319.91,
-    "tp": 758,
-    "fp": 1921,
-    "fn": 404,
-    "tn": 33465,
-    "precision": 0.2829,
-    "recall": 0.6523,
-    "f1": 0.3947,
-    "alert_rate": 0.0733
+    "threshold": 0.464966,
+    "fraud_caught_value": 106965.04,
+    "recovered": 96268.54,
+    "unrecovered_on_caught": 10696.5,
+    "fraud_missed_value": 58015.35,
+    "false_positive_count": 1643,
+    "false_positive_cost": 24645.0,
+    "net_cost": 93356.85,
+    "tp": 761,
+    "fp": 1643,
+    "fn": 401,
+    "tn": 33743,
+    "precision": 0.3166,
+    "recall": 0.6549,
+    "f1": 0.4268,
+    "alert_rate": 0.0658
   },
   "risk_engine_calibrated": {
-    "threshold": 0.109662,
-    "fraud_caught_value": 100528.32,
-    "recovered": 90475.48,
-    "unrecovered_on_caught": 10052.83,
-    "fraud_missed_value": 64452.08,
-    "false_positive_count": 1921,
-    "false_positive_cost": 28815.0,
-    "net_cost": 103319.91,
-    "tp": 758,
-    "fp": 1921,
-    "fn": 404,
-    "tn": 33465,
-    "precision": 0.2829,
-    "recall": 0.6523,
-    "f1": 0.3947,
-    "alert_rate": 0.0733
+    "threshold": 0.100245,
+    "fraud_caught_value": 106965.04,
+    "recovered": 96268.54,
+    "unrecovered_on_caught": 10696.5,
+    "fraud_missed_value": 58015.35,
+    "false_positive_count": 1643,
+    "false_positive_cost": 24645.0,
+    "net_cost": 93356.85,
+    "tp": 761,
+    "fp": 1643,
+    "fn": 401,
+    "tn": 33743,
+    "precision": 0.3166,
+    "recall": 0.6549,
+    "f1": 0.4268,
+    "alert_rate": 0.0658
   },
   "test": {
     "metrics": {
-      "pr_auc": 0.467993,
-      "roc_auc": 0.888253,
-      "brier": 0.025644,
+      "pr_auc": 0.514432,
+      "roc_auc": 0.896891,
+      "brier": 0.023761,
       "n": 73910,
       "n_positive": 2634,
       "base_rate": 0.035638,
-      "pr_auc_lift": 13.131871
+      "pr_auc_lift": 14.434952
     },
-    "threshold": 0.109662,
+    "threshold": 0.100245,
     "confusion": {
-      "threshold": 0.109662,
-      "tp": 1579,
-      "fp": 3892,
-      "fn": 1055,
-      "tn": 67384,
-      "precision": 0.2886,
-      "recall": 0.5995,
-      "f1": 0.3896,
-      "alert_rate": 0.074
+      "threshold": 0.100245,
+      "tp": 1653,
+      "fp": 3290,
+      "fn": 981,
+      "tn": 67986,
+      "precision": 0.3344,
+      "recall": 0.6276,
+      "f1": 0.4363,
+      "alert_rate": 0.0669
     },
     "cost": {
-      "threshold": 0.109662,
-      "fraud_caught_value": 241279.86,
-      "recovered": 217151.87,
-      "unrecovered_on_caught": 24127.99,
-      "fraud_missed_value": 154521.71,
-      "false_positive_count": 3892,
-      "false_positive_cost": 58380.0,
-      "net_cost": 237029.7
+      "threshold": 0.100245,
+      "fraud_caught_value": 255218.55,
+      "recovered": 229696.7,
+      "unrecovered_on_caught": 25521.86,
+      "fraud_missed_value": 140583.02,
+      "false_positive_count": 3290,
+      "false_positive_cost": 49350.0,
+      "net_cost": 215454.87
     },
     "do_nothing_cost": 395801.57,
-    "net_saving": 158771.87,
-    "pct_of_fraud_loss_avoided": 40.11
+    "net_saving": 180346.7,
+    "pct_of_fraud_loss_avoided": 45.56
   }
 }
