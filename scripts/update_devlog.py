@@ -312,7 +312,7 @@ length = anomalous**.
 
 Chosen over one-class SVM (roughly quadratic - would not finish on 438k) and
 Local Outlier Factor (needs a distance metric, suffers the curse of
-dimensionality across 470 features). Isolation Forest is linear time, needs no
+dimensionality across 504 features). Isolation Forest is linear time, needs no
 scaling, and handles mixed feature scales.
 
 **It never sees a label.** That is the point - it must be able to flag a fraud
@@ -526,7 +526,7 @@ than none.
 
 Built for a fraud **analyst**: risk bands not floats, plain-English reason
 codes not `V257 = 3.2`, precedent, and policy with citation. Two input modes -
-hand-built (relative movement) and a real validation row (full 470 features,
+hand-built (relative movement) and a real validation row (full 504 features,
 so genuine CRITICAL/DECLINE outcomes with the true label revealed).
 
 `@st.cache_resource` is essential: Streamlit reruns the whole script on every

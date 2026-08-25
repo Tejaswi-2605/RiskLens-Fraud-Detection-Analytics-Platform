@@ -515,6 +515,12 @@ quantify the model's value **in currency**.
 
 # ⚠️ CASE STUDY: A Real Bug I Shipped and Caught
 
+> **Note on the numbers below:** they are from the model as it stood when
+> this bug was found, *before* entity-linkage features were added, and they
+> are validation figures. The current headline results are in the README
+> and [stage03c_entity_features.md](stage03c_entity_features.md). The point
+> of this section is the bug and how it was caught, not the score.
+
 **This is the most useful story in the project. Learn to tell it.**
 
 ## What happened
