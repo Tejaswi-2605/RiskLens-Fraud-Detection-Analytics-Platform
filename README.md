@@ -30,18 +30,62 @@ Two properties make this hard, and they drive every design choice:
 | 1 | Data ingestion | ✅ | [stage01_ingestion.md](docs/stage01_ingestion.md) |
 | 2 | EDA + data quality + statistics | ✅ | [stage02_03_eda_and_split.md](docs/stage02_03_eda_and_split.md) |
 | 3 | Temporal split + feature engineering | ✅ | [stage02_03_eda_and_split.md](docs/stage02_03_eda_and_split.md) · [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
-| 4 | Supervised modelling | 🔄 running | [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
-| 5 | Evaluation + calibration + risk engine | 🔄 running | [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
-| 6 | Unsupervised + deep learning | ⬜ code written | — |
-| 7 | Explainability (SHAP) | ⬜ code written | — |
-| 8 | NLP + semantic search + RAG | ⬜ | — |
-| 9 | Agentic investigation copilot | ⬜ | — |
-| 10 | Scale + ship (PySpark, FastAPI, Streamlit, Docker) | ⬜ | — |
+| 4 | Supervised modelling | ✅ | [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
+| 5 | Evaluation + risk engine + calibration | ✅ | [stage03b_04_05_modelling.md](docs/stage03b_04_05_modelling.md) |
+| 6 | Unsupervised + fraud typologies | ✅ | [stage06_07_unsupervised_and_shap.md](docs/stage06_07_unsupervised_and_shap.md) |
+| 7 | Explainability (SHAP) | ✅ | [stage06_07_unsupervised_and_shap.md](docs/stage06_07_unsupervised_and_shap.md) |
+| 8 | NLP + semantic search + RAG | ✅ | [stage08_09_genai.md](docs/stage08_09_genai.md) |
+| 9 | Agentic investigation copilot | ✅ | [stage08_09_genai.md](docs/stage08_09_genai.md) |
+| 10 | FastAPI + Streamlit | ✅ | [stage10_deployment.md](docs/stage10_deployment.md) |
+| 10 | PySpark | 📝 written, **not run** | [stage10_deployment.md](docs/stage10_deployment.md) |
+| 10 | Docker | 📝 written, **not built** | [stage10_deployment.md](docs/stage10_deployment.md) |
 
-**[development_log.md](development_log.md)** is the master record — what was
-built at each stage, why, how, and the interview talking points.
+**Not run, and why — stated rather than hidden:**
 
----
+- **PySpark** needs a JVM, which isn't installed here. It is also, honestly,
+  *unnecessary for this dataset*: 590,540 rows fit in 928 MB, so Spark would be
+  slower than pandas. The script exists to answer the question that does
+  matter — which parts of the pipeline survive when data outgrows one machine —
+  and it says so explicitly in its own output.
+- **Docker** was skipped on disk grounds (Docker Desktop plus the image would
+  consume ~10 GB). The `Dockerfile` and `docker-compose.yml` are complete and
+  commented; they have simply never been built.
+
+## Headline results
+
+Measured on the **test** partition, which was opened once, at a threshold
+chosen on validation and applied unchanged.
+
+| Metric | Value |
+|---|---|
+| PR-AUC | **0.4680** (13.1× random) |
+| ROC-AUC | 0.8883 |
+| Brier (calibrated) | 0.02564 |
+| Precision / Recall | 28.9% / 60.0% |
+| Alert rate | 7.40% |
+| **Fraud loss avoided** | **40.1%** (£158,772) |
+
+Baseline logistic regression scored PR-AUC **0.3137** (9.0× random), so the
+gradient-boosted model is +49% relative — which is what justifies its
+complexity.
+
+**Calibration** (Platt, fitted on the earlier half of validation):
+Brier 0.0575 → **0.0223** (61% better), ECE 0.134 → **0.0081** (16.5× better),
+maximum predicted probability 0.9999 → 0.7735, with **zero rank inversions**.
+
+## Three bugs found by running the thing
+
+Each was caught by a result being *impossible* rather than by a test:
+
+1. **"116.8% of fraud loss avoided"** — the cost function treated caught fraud
+   as revenue rather than avoided loss, so the optimiser was rewarded for
+   flagging everything. Corrected to 44.2%.
+2. **Fraud is 4× higher when identity data is PRESENT** — the opposite of the
+   stated hypothesis. A confounder: identity is only captured for
+   card-not-present transactions, which are inherently riskier.
+3. **The copilot reported the CRITICAL action as the HIGH one** — a 3B model
+   shifted a row while reading a markdown table. Fixed architecturally: the
+   band→action lookup is now code, not prose comprehension.
 
 ## Key findings so far
 
