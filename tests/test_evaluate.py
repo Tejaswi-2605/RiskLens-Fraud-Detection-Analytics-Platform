@@ -144,3 +144,45 @@ def test_raising_the_threshold_trades_recall_for_precision():
     assert high["precision"] >= low["precision"]
     assert high["recall"] <= low["recall"]
     assert high["alert_rate"] <= low["alert_rate"]
+
+
+# ------------------------------------------------- narrative formatting ----
+def test_fmt_handles_numpy_nan_not_just_python_nan():
+    """Regression: numpy float32 is NOT a Python float.
+
+    The first version tested `isinstance(v, float)` before `isnan`, so numpy
+    NaN fell through to `str(v)` and narratives read
+    "a count of related addresses = nan" - nonsense to an analyst.
+    """
+    from risklens.genai.narratives import _fmt
+
+    assert _fmt(np.float32("nan")) == "not recorded"
+    assert _fmt(np.float64("nan")) == "not recorded"
+    assert _fmt(float("nan")) == "not recorded"
+    assert _fmt(None) == "not recorded"
+
+
+def test_fmt_renders_real_values_readably():
+    from risklens.genai.narratives import _fmt
+
+    assert _fmt(np.int32(7)) == "7"
+    assert _fmt(np.float32(3.14159)) == "3.14"
+    assert _fmt("visa") == "visa"
+    assert _fmt(np.bool_(True)) == "yes"
+
+
+def test_band_actions_match_the_policy_table():
+    """Regression: the copilot once reported CRITICAL as the HIGH action.
+
+    CRITICAL must be decline-and-contact, not hold-and-review. This is a
+    deterministic lookup precisely so a language model cannot shift a row.
+    """
+    from risklens.genai.narratives import BAND_ACTIONS, BAND_OWNER, band_risk
+
+    assert "decline" in BAND_ACTIONS["CRITICAL"]
+    assert "hold" in BAND_ACTIONS["HIGH"]
+    assert BAND_ACTIONS["CRITICAL"] != BAND_ACTIONS["HIGH"]
+    assert set(BAND_ACTIONS) == set(BAND_OWNER)
+    # every band the risk function can emit must have an action
+    for p in (0.99, 0.80, 0.50, 0.20, 0.01):
+        assert band_risk(p) in BAND_ACTIONS

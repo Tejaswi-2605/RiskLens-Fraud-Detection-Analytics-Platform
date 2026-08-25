@@ -220,3 +220,46 @@ def test_missing_raw_file_gives_actionable_error(cfg):
     cfg.transaction_csv.unlink()
     with pytest.raises(FileNotFoundError, match="download_data.py"):
         ingest(cfg, write=False)
+
+
+# ------------------------------------------------- serving-time robustness ---
+def test_frequency_encoder_tolerates_absent_columns():
+    """Training/serving skew regression test.
+
+    At training time every source column exists. A live API payload is sparse
+    and may omit `id_31`, `DeviceInfo` and others entirely. An earlier version
+    indexed the column directly and raised KeyError on the first real request.
+
+    The encoder must still EMIT the `_freq` column, filled with unseen_value.
+    Dropping it would change the feature vector's shape and silently shift
+    every downstream column - and XGBoost matches positionally as well as by
+    name, so that is a confident wrong answer rather than an error.
+    """
+    from risklens.features.build import FrequencyEncoder
+
+    train = pd.DataFrame({
+        "card1": [1, 1, 1, 2],
+        "id_31": ["chrome", "chrome", "safari", "ie"],
+        "other": [0.1, 0.2, 0.3, 0.4],
+    })
+    fe = FrequencyEncoder(columns=["card1", "id_31"]).fit(train)
+
+    # a serving payload with card1 present but id_31 entirely absent
+    payload = pd.DataFrame({"card1": [1], "other": [0.5]})
+    out = fe.transform(payload)
+
+    assert "card1_freq" in out.columns
+    assert "id_31_freq" in out.columns, "absent column must still emit its feature"
+    assert out["card1_freq"].iloc[0] == pytest.approx(0.75)   # 3 of 4 train rows
+    assert out["id_31_freq"].iloc[0] == 0.0                   # never observed
+    assert out["id_31_freq"].dtype == "float32"
+
+
+def test_frequency_encoder_maps_unseen_categories_to_zero():
+    """A category present at serving but never seen in training is the rarest case."""
+    from risklens.features.build import FrequencyEncoder
+
+    train = pd.DataFrame({"card1": [1, 1, 2]})
+    fe = FrequencyEncoder(columns=["card1"]).fit(train)
+    out = fe.transform(pd.DataFrame({"card1": [999]}))
+    assert out["card1_freq"].iloc[0] == 0.0

@@ -176,14 +176,39 @@ class FrequencyEncoder(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Apply the train-time frequency maps.
+
+        Absent columns are tolerated on purpose
+        ---------------------------------------
+        At training time every source column exists. At SERVING time the
+        caller sends a sparse payment message that may omit `id_31`,
+        `DeviceInfo`, and others entirely - the field was never captured, not
+        merely null.
+
+        An earlier version indexed `out[c]` directly and raised
+        `KeyError: 'id_31'` on the first real API call. That is a
+        training/serving skew bug in its purest form: the code worked on
+        every offline frame and failed the moment a real request arrived.
+
+        The correct behaviour is to still EMIT the `_freq` column, filled with
+        `unseen_value`. Dropping it instead would change the feature vector's
+        shape and silently shift every downstream column, which XGBoost
+        matches positionally - a confident wrong answer rather than an error.
+
+        `unseen_value = 0` is also semantically right here: a field that was
+        never captured is, for a rarity feature, the rarest possible case.
+        """
         out = X.copy()
         for c in self.columns_:
-            out[f"{c}_freq"] = (
-                out[c].astype("object")
-                .map(self.freq_maps_[c])
-                .fillna(self.unseen_value)
-                .astype("float32")
-            )
+            if c in out.columns:
+                freq = (
+                    out[c].astype("object")
+                    .map(self.freq_maps_[c])
+                    .fillna(self.unseen_value)
+                )
+            else:
+                freq = pd.Series(self.unseen_value, index=out.index)
+            out[f"{c}_freq"] = freq.astype("float32")
         return out
 
     def get_feature_names_out(self, input_features=None):

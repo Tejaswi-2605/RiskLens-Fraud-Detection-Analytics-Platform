@@ -130,6 +130,7 @@ async def lifespan(app: FastAPI):
         ("model", models_dir / "xgboost.joblib"),
         ("encoder", models_dir / "frequency_encoder.joblib"),
         ("features", models_dir / "feature_names.joblib"),
+        ("schema", models_dir / "feature_schema.joblib"),
     ]:
         if path.is_file():
             STATE[name] = joblib.load(path)
@@ -224,7 +225,36 @@ def build_features(payload: TransactionIn) -> pd.DataFrame:
     # Any column the payload did not supply becomes NaN - which is correct,
     # not a fallback: the model learned how to route missing values, and
     # missingness is genuine signal in this dataset.
-    return df.reindex(columns=features)
+    df = df.reindex(columns=features)
+
+    # ---- step 4: cast to the EXACT training dtypes ----------------------
+    # This is the step that stops training/serving skew from being silent.
+    #
+    # `pd.DataFrame([payload])` gives `object` for every string column, but at
+    # training those were pandas `category`. XGBoost rejects `object`, which
+    # is the lucky outcome; the dangerous version is casting to a category
+    # built from THIS ROW's values. A category is stored as an integer code
+    # plus a categories list, and XGBoost splits on the codes - so if serving
+    # invents its own list, "visa" might be code 0 here and code 3 at
+    # training, and the model applies a split learned for a different card
+    # network. No error, wrong answer.
+    #
+    # feature_schema.joblib carries the CategoricalDtype from the TRAINING
+    # partition, categories and order intact, so codes line up exactly.
+    schema = STATE.get("schema")
+    if schema:
+        for col, dtype in schema.items():
+            try:
+                df[col] = df[col].astype(dtype)
+            except (TypeError, ValueError):
+                # A value outside the training categories becomes NaN, which
+                # the model already knows how to route. Better than crashing
+                # a live scoring request on an unseen browser string.
+                if isinstance(dtype, pd.CategoricalDtype):
+                    df[col] = pd.Categorical(df[col], dtype=dtype)
+                else:
+                    df[col] = pd.to_numeric(df[col], errors="coerce")
+    return df
 
 
 def band_and_decision(prob: float, threshold: float) -> tuple[str, str]:
@@ -254,6 +284,7 @@ def health() -> dict[str, Any]:
         "status": "ok" if "model" in STATE else "degraded",
         "model_loaded": "model" in STATE,
         "encoder_loaded": "encoder" in STATE,
+        "schema_loaded": "schema" in STATE,
         "explainer_loaded": "explainer" in STATE,
         "case_index_loaded": "case_index" in STATE,
         "policy_rag_loaded": "policy_rag" in STATE,

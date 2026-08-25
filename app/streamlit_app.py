@@ -56,7 +56,12 @@ def load_artifacts():
     out = {"cfg": cfg}
     for k, f in [("model", "xgboost.joblib"),
                  ("encoder", "frequency_encoder.joblib"),
-                 ("features", "feature_names.joblib")]:
+                 ("features", "feature_names.joblib"),
+                 # feature_schema carries the TRAINING CategoricalDtypes.
+                 # Without it, serving builds its own category list and the
+                 # integer codes XGBoost splits on no longer line up - a
+                 # silently wrong prediction rather than an error.
+                 ("schema", "feature_schema.joblib")]:
         p = md / f
         if p.is_file():
             out[k] = joblib.load(p)
@@ -111,6 +116,7 @@ st.sidebar.markdown("---")
 
 st.sidebar.subheader("System status")
 st.sidebar.write("Model", "✅" if "model" in A else "❌")
+st.sidebar.write("Schema", "✅" if "schema" in A else "❌")
 st.sidebar.write("Explainer", "✅" if "explainer" in A else "❌")
 IDX = load_indexes()
 st.sidebar.write("Case search", "✅" if "cases" in IDX else "❌")
@@ -167,7 +173,8 @@ if page == "Score a transaction":
         from risklens.api.app import STATE, build_features
         from risklens.api.app import TransactionIn
 
-        STATE.update({k: A[k] for k in ("model", "encoder", "features") if k in A})
+        STATE.update({k: A[k] for k in ("model", "encoder", "features", "schema")
+                      if k in A})
 
         payload = TransactionIn(
             TransactionAmt=amount,

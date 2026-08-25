@@ -196,12 +196,41 @@ def build_narrative(
 
 
 def _fmt(v: Any) -> str:
-    if v is None or (isinstance(v, float) and np.isnan(v)):
-        return "missing"
+    """Render a feature value for an analyst.
+
+    The numpy-float trap
+    --------------------
+    The first version tested `isinstance(v, float)` before calling `isnan`.
+    A numpy `float32` is NOT a Python `float`, so that check never fired for
+    our features - which are almost all float32 - and the branch fell through
+    to `str(v)`, producing narratives that read:
+
+        "the model raised this alert because of a count of related
+         addresses = nan"
+
+    Nonsense to an analyst, and worse than saying nothing.
+
+    `pd.isna` handles Python floats, numpy scalars, None and pd.NaT uniformly,
+    which is exactly why it exists.
+
+    Note that "not recorded" is genuinely informative here rather than a
+    fallback: Stage 2 established that missingness is one of the strongest
+    signals in this dataset, so SHAP attributing weight to an ABSENT field is
+    a real finding, not an artefact.
+    """
+    if v is None:
+        return "not recorded"
+    try:
+        if pd.isna(v):
+            return "not recorded"
+    except (TypeError, ValueError):
+        pass  # arrays and other non-scalars fall through to str()
+    if isinstance(v, (bool, np.bool_)):
+        return "yes" if v else "no"
     if isinstance(v, (int, np.integer)):
         return str(int(v))
     if isinstance(v, (float, np.floating)):
-        return f"{float(v):.3g}"
+        return f"{float(v):,.3g}"
     return str(v)
 
 
