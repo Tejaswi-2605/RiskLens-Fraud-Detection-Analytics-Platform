@@ -180,13 +180,43 @@ class CostModel:
     def expected_cost(
         self, y_true: np.ndarray, y_prob: np.ndarray, amounts: np.ndarray, threshold: float
     ) -> dict[str, float]:
-        """Total money lost at this threshold. LOWER IS BETTER."""
+        """Total money LOST at this threshold. Lower is better. Never negative.
+
+        The formulation matters, and getting it wrong is a real trap
+        -----------------------------------------------------------
+        Catching fraud AVOIDS a loss; it does not EARN revenue. An earlier
+        version of this function computed
+
+            cost = fn_loss + fp_cost - recovered          # WRONG
+
+        which treats every caught fraud as income. Under that formula the
+        optimiser is rewarded for flagging more, so it drives the threshold
+        down until it flags everything, and total "cost" goes NEGATIVE - the
+        model appears to print money. It also produced the impossible headline
+        "116.8% of fraud loss avoided".
+
+        The correct accounting asks: of the money at risk, how much do we
+        still lose after acting?
+
+            cost = fraud we MISSED (full value)
+                 + fraud we CAUGHT but could not recover
+                 + review cost of the good customers we flagged
+
+        Sanity checks that this formulation satisfies and the old one did not:
+
+          * threshold = 1.0 (flag nothing)  -> cost == total fraud value,
+            which is exactly the do-nothing baseline.
+          * cost >= 0 always.
+          * saving <= 100% of the fraud loss, always.
+        """
         flagged = y_prob >= threshold
         is_fraud = y_true.astype(bool)
 
-        # Fraud we caught: we recover most of the value.
+        # Fraud we caught. We recover most of the value, but not all - some has
+        # already moved. The UNRECOVERED remainder is a real loss.
         tp_amount = float(amounts[flagged & is_fraud].sum())
         recovered = tp_amount * self.tp_recovery_rate
+        unrecovered = tp_amount - recovered
 
         # Fraud we missed: full loss.
         fn_loss = float(amounts[~flagged & is_fraud].sum())
@@ -195,11 +225,12 @@ class CostModel:
         fp_count = int((flagged & ~is_fraud).sum())
         fp_loss = fp_count * self.fp_cost
 
-        total = fn_loss + fp_loss - recovered
+        total = fn_loss + unrecovered + fp_loss
         return {
             "threshold": round(float(threshold), 6),
             "fraud_caught_value": round(tp_amount, 2),
             "recovered": round(recovered, 2),
+            "unrecovered_on_caught": round(unrecovered, 2),
             "fraud_missed_value": round(fn_loss, 2),
             "false_positive_count": fp_count,
             "false_positive_cost": round(fp_loss, 2),

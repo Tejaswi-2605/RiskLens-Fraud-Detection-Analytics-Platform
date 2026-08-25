@@ -1,0 +1,72 @@
+10:14:14 | INFO    | rebuilding features ...
+10:14:18 | INFO    | deterministic features: 434 -> 462 columns (+28)
+10:14:20 | INFO    | temporal split: train <= 11,093,711 | val [11,180,111, 13,452,421] | test >= 13,538,821 | embargo 1.0d
+10:14:20 | INFO    |   train   438125 rows (74.2%)  fraud 15364 (3.507%)  127.4 days
+10:14:20 | INFO    |   val      73096 rows (12.4%)  fraud  2536 (3.469%)  26.3 days
+10:14:20 | INFO    |   test     73910 rows (12.5%)  fraud  2634 (3.564%)  26.3 days
+
+==========================================================================
+  VALIDATION - ranking quality and threshold selection
+==========================================================================
+  PR-AUC   0.5233   (15.1x random)
+  ROC-AUC  0.9053
+  Brier    0.05574   (lower = better calibrated)
+  base rate 0.0347  <- what a random model scores on PR-AUC
+
+--- operating points: minimum precision required ---
+   precision   recall   alerts   caught   missed
+         50%    48.9%    3.40%    1,241    1,295
+         70%    36.0%    1.78%      913    1,623
+         90%    21.8%    0.84%      553    1,983
+
+--- operating points: fixed alert budget ---
+      budget  precision   recall   caught
+        0.5%      94.3%    13.6%      345
+        1.0%      86.2%    24.8%      630
+        2.0%      66.4%    38.3%      971
+        5.0%      40.2%    57.9%    1,468
+
+==========================================================================
+  RISK ENGINE - threshold chosen by MONEY (on validation)
+==========================================================================
+Cost model:
+  false negative = the transaction amount (we refund the customer)
+  false positive = GBP 15 (review time + friction)
+  true positive  = we recover 90%; the remainder is still a loss
+
+  do nothing        : GBP      396,914   all fraud gets through
+  cost-optimal      : GBP      221,422   net loss after acting
+  NET SAVING        : GBP      175,491   (44.2% of fraud loss avoided)
+
+  chosen threshold  : 0.4548
+  precision 27.4% | recall 69.8% | alert rate 8.84%
+  caught 1,770 | missed 766 | false alarms 4,689
+
+==========================================================================
+  TEST - the final honest number (threshold NOT retuned here)
+==========================================================================
+The threshold above was selected on VALIDATION. It is applied
+unchanged to TEST. Retuning it here would make the number
+optimistically biased, and nothing could detect that afterwards.
+
+  PR-AUC   0.4680   (13.1x random)
+  ROC-AUC  0.8883
+  Brier    0.05894
+
+  at the validation-chosen threshold 0.4548:
+    precision 25.2% | recall 65.0% | alert rate 9.20%
+    caught 1,713 | missed 921 | false alarms 5,086
+
+  do nothing        : GBP      395,802
+  with RiskLens     : GBP      234,738
+  NET SAVING        : GBP      161,063   (40.7% of fraud loss avoided)
+
+  generalisation gap (test PR-AUC - val PR-AUC): -0.0553
+  A small gap means the temporal split held and the model is not
+  overfitted to the validation period.
+
+==========================================================================
+  DONE
+==========================================================================
+  runtime 8s
+  results -> reports/stage05_evaluation.json

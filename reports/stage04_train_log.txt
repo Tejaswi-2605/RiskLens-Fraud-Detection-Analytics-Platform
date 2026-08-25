@@ -61,3 +61,56 @@
   FAST MODE: 300 trees @ lr=0.10 (same shrinkage budget)
 [0]	validation_0-aucpr:0.28352
 [100]	validation_0-aucpr:0.48377
+[200]	validation_0-aucpr:0.51013
+[299]	validation_0-aucpr:0.52320
+
+  fitted in 1458.7s
+  early stopping chose 299 of 300 trees
+  -> validation PR-AUC stopped improving there; more trees would
+     have started memorising the training set.
+
+  PR-AUC   0.5233   (15.1x random)
+  ROC-AUC  0.9053
+  Brier    0.05574
+
+==========================================================================
+  STAGE 5 - OPERATING POINTS (the probability -> decision step)
+==========================================================================
+A model gives a PROBABILITY. A business needs a DECISION.
+Which threshold you pick is a BUSINESS choice, not a statistical one.
+
+--- If the fraud team requires a minimum precision ---
+   precision   recall   alerts   caught   missed
+         50%    48.9%    3.40%    1,241    1,295
+         70%    36.0%    1.78%      913    1,623
+         90%    21.8%    0.84%      553    1,983
+
+--- If the fraud team has a fixed daily alert budget ---
+      budget  precision   recall   caught
+        0.5%      94.3%    13.6%      345
+        1.0%      86.2%    24.8%      630
+        2.0%      66.4%    38.3%      971
+        5.0%      40.2%    57.9%    1,468
+
+==========================================================================
+  STAGE 5 - RISK ENGINE: choosing the threshold by MONEY
+==========================================================================
+Cost model:
+  false negative = the transaction amount (we refund the customer)
+  false positive = GBP 15 (review time + friction)
+  recovery rate  = 90% of caught fraud
+
+  do nothing        : GBP      396,914 lost to fraud
+  cost-optimal      : GBP      -66,541 net cost
+  NET SAVING        : GBP      463,455 (116.8% of fraud loss avoided)
+
+  chosen threshold  : 0.3386
+  precision 19.6% | recall 78.3% | alert rate 13.86%
+  caught 1,986 fraud | missed 550 | false alarms 8,142
+
+==========================================================================
+  DONE
+==========================================================================
+  total runtime  1473s
+  models    -> models/
+  results   -> reports/stage04_05_model_results.json
