@@ -21,6 +21,13 @@
 development_log.md
 README_PRIVATE.md
 
+# ---- Policy corpus: kept local ----
+# NOTE: unlike models/ and indexes/, this is SOURCE rather than output -
+# nothing regenerates it. Stages 8-9 (policy retrieval and the investigation
+# copilot) will not run without documents here. The README says so, and
+# describes what to put in this folder.
+/corpus/
+
 # ---- Secrets ----
 kaggle.json
 .env

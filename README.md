@@ -172,7 +172,7 @@ app/streamlit_app.py     analyst console
 scripts/                 CLI entry points, in dependency order
 tests/                   62 tests, synthetic fixtures, no dataset required
 configs/data.yaml        paths, schema, data contract, split policy
-corpus/policies/         illustrative fraud-operations policy documents
+corpus/policies/         fraud-operations policy documents (not included - see below)
 notebooks/               generated and executed; outputs embedded
 reports/                 result artefacts — see below
 ```
@@ -209,6 +209,27 @@ a different hash, results are not comparable and you find out immediately.
 cannot drift from what the code actually produced.
 
 ---
+
+## Not included in this repository
+
+Three things are deliberately absent, and the pipeline tells you clearly when
+it needs them.
+
+**The dataset** (678 MB). Public, but the competition licence restricts
+redistribution. `scripts/download_data.py` fetches it, and
+`reports/stage01_ingest_manifest.json` carries the SHA-256 of each file so
+results stay traceable.
+
+**Trained artefacts** (`models/`, `indexes/`). Regenerable binaries. Git
+stores every version of a binary in full, so committing them would bloat
+history permanently for no benefit.
+
+**The policy corpus** (`corpus/policies/`). Stages 8 and 9 - policy retrieval
+and the investigation copilot - read plain-text policy documents from this
+folder and index them for retrieval. Any set of markdown files works; the
+system expects documents describing decision thresholds, escalation paths,
+review requirements and model-governance rules. Without them the earlier
+stages run normally and `run_genai.py` stops at the retrieval step.
 
 ## Running it
 
