@@ -1,5 +1,18 @@
 # RiskLens
 
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![pandas](https://img.shields.io/badge/pandas-2.2-150458?logo=pandas&logoColor=white)](https://pandas.pydata.org/)
+[![NumPy](https://img.shields.io/badge/NumPy-2.1-013243?logo=numpy&logoColor=white)](https://numpy.org/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.6-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
+[![XGBoost](https://img.shields.io/badge/XGBoost-2.1-337AB7)](https://xgboost.readthedocs.io/)
+[![SHAP](https://img.shields.io/badge/SHAP-0.46-0088CC)](https://shap.readthedocs.io/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.5%20CPU-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![FAISS](https://img.shields.io/badge/FAISS-1.9-4267B2)](https://faiss.ai/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.41-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![DuckDB](https://img.shields.io/badge/DuckDB-1.1-FFF000?logo=duckdb&logoColor=black)](https://duckdb.org/)
+[![tests](https://img.shields.io/badge/tests-62%20passing-success)](tests/)
+
 **Fraud risk scoring and investigation platform for card payments.**
 
 Built on the IEEE-CIS Fraud Detection dataset — a public benchmark released by
