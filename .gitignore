@@ -1,27 +1,18 @@
-# ---- Data: NEVER commit. Regenerate via scripts/download_data.py ----
-# Leading slash anchors these to the repo root, so they do NOT accidentally
-# match the source package `src/risklens/data/`.
+
 /data/
 *.csv
 *.parquet
 *.zip
 
-# ---- Trained artefacts: regenerable, and binary ----
-# Outputs, not source. Git stores every version of a binary in full, so
-# committing these would bloat history permanently and they change on every
-# retrain. Reproducibility comes from the SHA-256 manifest in reports/.
 /models/
 /indexes/
 
-# ---- Private working notes: kept local, not published ----
-# The detailed teaching docs and the running engineering log are working
-# material rather than the public face of the project. The public README
-# carries the architecture, stack and results.
+
 /docs/
 development_log.md
 README_PRIVATE.md
 
-# ---- Secrets ----
+
 kaggle.json
 .env
 *.pem
@@ -35,11 +26,9 @@ __pycache__/
 build/
 dist/
 
-# ---- Logs: console output, not results. The JSON/CSV in reports/ IS kept. ----
 reports/*.txt
 reports/*_log.txt
 
-# ---- Tooling / OS ----
 .pytest_cache/
 .ipynb_checkpoints/
 .DS_Store
